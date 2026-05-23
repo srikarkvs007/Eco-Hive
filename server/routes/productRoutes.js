@@ -1,0 +1,196 @@
+const express = require('express');
+const router = express.Router();
+const prisma = require('../prismaClient');
+
+// Get all categories
+router.get('/categories', async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany();
+        res.json(categories);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get all products (with optional search and category filters)
+router.get('/', async (req, res) => {
+    try {
+        const { search, categoryId, categoryName, minPrice, maxPrice, ecoFriendlyOnly, inStockOnly, sortBy } = req.query;
+        let queryOptions = {
+            include: { category: true, reviews: true }
+        };
+
+        let whereClause = {};
+        
+        if (search) {
+            const searchTerms = search.split(' ').filter(term => term.trim().length > 0);
+            
+            if (searchTerms.length > 0) {
+                whereClause.OR = searchTerms.flatMap(term => [
+                    { title: { contains: term, mode: 'insensitive' } },
+                    { features: { contains: term, mode: 'insensitive' } },
+                    { description: { contains: term, mode: 'insensitive' } }
+                ]);
+            }
+        }
+        
+        if (categoryId) {
+            whereClause.categoryId = categoryId;
+        }
+        
+        if (categoryName) {
+            whereClause.category = {
+                name: categoryName
+            };
+        }
+        
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            whereClause.price = {};
+            if (minPrice) whereClause.price.gte = parseFloat(minPrice);
+            if (maxPrice) whereClause.price.lte = parseFloat(maxPrice);
+        }
+        
+        if (ecoFriendlyOnly === 'true') {
+            whereClause.isEcoFriendly = true;
+        }
+        
+        if (inStockOnly === 'true') {
+            whereClause.stockQuantity = { gt: 0 };
+        }
+
+        if (Object.keys(whereClause).length > 0) {
+            queryOptions.where = whereClause;
+        }
+        
+        if (sortBy === 'price_asc') queryOptions.orderBy = { price: 'asc' };
+        else if (sortBy === 'price_desc') queryOptions.orderBy = { price: 'desc' };
+        else if (sortBy === 'newest') queryOptions.orderBy = { createdAt: 'desc' };
+        else queryOptions.orderBy = { createdAt: 'desc' };
+
+        const products = await prisma.product.findMany(queryOptions);
+        res.json(products);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get single product by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: { 
+                category: true,
+                reviews: {
+                    include: { user: { select: { name: true, email: true } } },
+                    orderBy: { createdAt: 'desc' }
+                }
+            }
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        res.json(product);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Create a new product (Admin route)
+router.post('/', async (req, res) => {
+    try {
+        const { title, description, features, specifications, perfectFor, price, stockQuantity, imageUrl, isEcoFriendly, categoryId } = req.body;
+        
+        const newProduct = await prisma.product.create({
+            data: {
+                title,
+                description,
+                features,
+                specifications,
+                perfectFor,
+                price: parseFloat(price),
+                stockQuantity: parseInt(stockQuantity),
+                imageUrl,
+                isEcoFriendly: Boolean(isEcoFriendly),
+                categoryId
+            }
+        });
+
+        res.status(201).json(newProduct);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete a product (Admin route)
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // First delete all cart items and order items associated with this product to prevent foreign key constraint errors
+        await prisma.cartItem.deleteMany({
+            where: { productId: id }
+        });
+
+        await prisma.orderItem.deleteMany({
+            where: { productId: id }
+        });
+
+        // Now delete the product
+        await prisma.product.delete({
+            where: { id }
+        });
+
+        res.json({ message: 'Product deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get reviews for a product
+router.get('/:id/reviews', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const reviews = await prisma.review.findMany({
+            where: { productId: id },
+            orderBy: { createdAt: 'desc' },
+            include: { user: { select: { name: true, email: true } } }
+        });
+        res.json(reviews);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Post a review
+router.post('/:id/reviews', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userId, rating, comment } = req.body;
+        
+        const review = await prisma.review.create({
+            data: {
+                productId: id,
+                userId,
+                rating: parseInt(rating),
+                comment
+            },
+            include: { user: { select: { name: true, email: true } } }
+        });
+        res.status(201).json(review);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+module.exports = router;

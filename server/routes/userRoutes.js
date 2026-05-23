@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 router.post('/register', async (req,res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -20,7 +20,8 @@ router.post('/register', async (req,res) => {
             data: {
                 name,
                 email,
-                password: hashedPassword
+                password: hashedPassword,
+                role: role || 'User'
             }
         });
 
@@ -47,9 +48,50 @@ router.post('/login', async (req, res) => {
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
 
-        res.json({ token, message: 'Login Success', user: { name: user.name, email: user.email } });
+        // Track Login Activity
+        await prisma.userActivity.create({
+            data: {
+                userId: user.id,
+                action: 'Logged In',
+                details: 'User authenticated successfully'
+            }
+        });
+
+        res.json({ token, message: 'Login Success', user: { id: user.id, name: user.name, email: user.email, role: user.role } });
     } catch (err) {
         console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// GET /api/user/activity/:userId
+router.get('/activity/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const activities = await prisma.userActivity.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+            take: 20
+        });
+        res.json(activities);
+    } catch (err) {
+        console.error("Error fetching activity:", err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// POST /api/user/activity
+router.post('/activity', async (req, res) => {
+    try {
+        const { userId, action, details } = req.body;
+        if (!userId || !action) return res.status(400).json({ message: 'Missing fields' });
+        
+        const activity = await prisma.userActivity.create({
+            data: { userId, action, details }
+        });
+        res.status(201).json(activity);
+    } catch (err) {
+        console.error("Error logging activity:", err);
         res.status(500).json({ message: 'Server error' });
     }
 });

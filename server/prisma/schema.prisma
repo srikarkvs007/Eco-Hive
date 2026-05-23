@@ -9,19 +9,32 @@ datasource db {
 }
 
 model User {
-  id       String   @id @default(uuid())
-  name     String
-  email    String   @unique
-  password String
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String
+  role           String          @default("User") // User or Admin
+  cartItems      CartItem[]
+  customerOrders CustomerOrder[]
+  activities     UserActivity[]
+  reviews        Review[]
+  wishlistItems  WishlistItem[]
 }
 
 model Order {
-  id             String   @id @default(uuid())
-  pickupLocation String
-  dropLocation   String
-  packageType    String
-  deliveryMode   String
-  status         String   @default("Pending")
+  id              String        @id @default(uuid())
+  pickupLocation  String
+  dropLocation    String
+  packageType     String
+  weight          Float         @default(0.0)
+  sensitivity     String        @default("Standard")
+  isPremium       Boolean       @default(false)
+  extraFee        Float         @default(0.0)
+  assignedDrones  Int           @default(0)
+  deliveryMode    String
+  status          String        @default("Pending")
+  customerOrderId String?
+  customerOrder   CustomerOrder? @relation(fields: [customerOrderId], references: [id])
 }
 
 model Vehicle {
@@ -29,4 +42,99 @@ model Vehicle {
   vehicleNumber String
   driverName    String
   vehicleType   String
+}
+
+model Category {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id             String      @id @default(uuid())
+  title          String
+  description    String?
+  features       String?
+  specifications String?
+  perfectFor     String?
+  price          Float
+  stockQuantity Int         @default(0)
+  imageUrl      String?
+  isEcoFriendly Boolean     @default(false)
+  categoryId    String?
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  reviews       Review[]
+  wishlistedBy  WishlistItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  userId    String
+  productId String
+  quantity  Int     @default(1)
+  user      User    @relation(fields: [userId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model CustomerOrder {
+  id              String      @id @default(uuid())
+  userId          String
+  totalAmount     Float
+  status          String      @default("Pending") // Pending, Paid, Shipped, Delivered, Cancelled
+  shippingAddress String?
+  paymentIntentId String?     // Stripe Payment Intent
+  paymentStatus   String      @default("Unpaid") // Unpaid, Paid, Failed
+  receiptUrl      String?     // Stripe Receipt URL
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  logisticsOrders Order[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id              String        @id @default(uuid())
+  customerOrderId String
+  productId       String
+  quantity        Int
+  priceAtPurchase Float
+  order           CustomerOrder @relation(fields: [customerOrderId], references: [id])
+  product         Product       @relation(fields: [productId], references: [id])
+}
+
+model UserActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  productId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }

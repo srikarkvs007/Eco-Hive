@@ -1,0 +1,6 @@
+
+> server@1.0.0 start
+> node server.js
+
+◇ injected env (2) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Server Running on Port 5001
