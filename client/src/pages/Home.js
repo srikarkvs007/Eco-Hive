@@ -366,7 +366,7 @@ const Home = () => {
                                 </div>
                             ))}
                         </div>
-                    ) : products.length === 0 ? (
+                    ) : (!Array.isArray(products) || products.length === 0) ? (
                         <div className="text-center py-5 bg-white rounded-4 shadow-sm">
                             <h4 className="text-muted">No products found.</h4>
                             <p>Check back later or try a different search!</p>
@@ -379,7 +379,7 @@ const Home = () => {
                             viewport={{ once: true, margin: "-50px" }}
                             className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
                         >
-                            {products.map(product => (
+                            {Array.isArray(products) && products.map(product => (
                                 <motion.div variants={fadeInUp} className="col" key={product.id}>
                                     <ProductCard product={product} onDelete={handleProductDeleted} />
                                 </motion.div>

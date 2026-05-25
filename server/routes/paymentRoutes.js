@@ -43,27 +43,39 @@ router.post('/create-checkout-session', async (req, res) => {
             },
             quantity: item.quantity,
         }));
+        let sessionUrl = '';
+        const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+        const isValidStripeKey = stripeKey.startsWith('sk_') || stripeKey.startsWith('rk_');
 
-        // 3. Create Stripe Checkout Session
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: lineItems,
-            mode: 'payment',
-            success_url: `http://localhost:3000/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
-            cancel_url: `http://localhost:3000/checkout?canceled=true`,
-            metadata: {
-                orderId: order.id,
-                userId: userId
-            }
-        });
+        if (!isValidStripeKey) {
+            sessionUrl = `http://localhost:3000/order-success?session_id=mock_session_${order.id}`;
+            // Mark order as paid instantly for dev purposes
+            await prisma.customerOrder.update({
+                where: { id: order.id },
+                data: { paymentStatus: 'Paid', status: 'Processing', paymentIntentId: `mock_session_${order.id}` }
+            });
+            return res.json({ id: 'mock_id', url: sessionUrl });
+        } else {
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: lineItems,
+                mode: 'payment',
+                success_url: `http://localhost:3000/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
+                cancel_url: `http://localhost:3000/checkout?canceled=true`,
+                metadata: {
+                    orderId: order.id,
+                    userId: userId
+                }
+            });
 
-        // 4. Update order with paymentIntentId (which is the session id for now)
-        await prisma.customerOrder.update({
-            where: { id: order.id },
-            data: { paymentIntentId: session.id }
-        });
+            await prisma.customerOrder.update({
+                where: { id: order.id },
+                data: { paymentIntentId: session.id }
+            });
 
-        res.json({ id: session.id, url: session.url });
+            sessionUrl = session.url;
+            return res.json({ id: session.id, url: sessionUrl });
+        }
     } catch (err) {
         console.error("Stripe Session Error:", err);
         res.status(500).json({ error: err.message });

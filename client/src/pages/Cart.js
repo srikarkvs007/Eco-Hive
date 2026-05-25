@@ -30,6 +30,23 @@ const Cart = () => {
         }
     };
 
+    const handleUpdateQuantity = async (id, currentQuantity, change, maxStock) => {
+        const newQuantity = currentQuantity + change;
+        if (newQuantity < 1) return;
+        if (newQuantity > maxStock) {
+            toast.error(`Only ${maxStock} items left in stock.`);
+            return;
+        }
+
+        try {
+            await axios.put(`http://localhost:5001/api/cart/${id}`, { quantity: newQuantity });
+            setCartItems(cartItems.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
+        } catch (err) {
+            console.error('Error updating quantity:', err);
+            toast.error(err.response?.data?.message || 'Failed to update quantity');
+        }
+    };
+
     const handleRemove = async (cartItemId) => {
         try {
             await axios.delete(`http://localhost:5001/api/cart/${cartItemId}`);
@@ -85,7 +102,11 @@ const Cart = () => {
                                             </div>
                                             <div>
                                                 <h5 className="fw-bolder mb-1" style={{ fontSize: '20px', letterSpacing: '-0.01em' }}>{item.product.title}</h5>
-                                                <p className="text-muted mb-0">Qty: {item.quantity}</p>
+                                                <div className="d-flex align-items-center mt-2">
+                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{width: '28px', height: '28px'}} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, -1, item.product.stockQuantity); }}>-</button>
+                                                    <span className="mx-3 fw-medium">{item.quantity}</span>
+                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{width: '28px', height: '28px'}} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, 1, item.product.stockQuantity); }}>+</button>
+                                                </div>
                                             </div>
                                         </Link>
                                         <div className="text-end ms-3">

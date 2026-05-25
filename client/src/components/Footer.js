@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
     return (
@@ -9,10 +10,10 @@ const Footer = () => {
                 <div className="mb-5">
                     <h3 className="fw-bolder text-dark mb-4" style={{ fontSize: '28px', letterSpacing: '-0.02em' }}>Quick Links</h3>
                     <div className="d-flex flex-wrap gap-3 mb-4">
-                        <button className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Find a Store</button>
-                        <a href="/my-orders" className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Order Status</a>
-                        <button className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Shopping Help</button>
-                        <button className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Your Saves</button>
+                        <Link to="/home" className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Find a Store</Link>
+                        <Link to="/view-orders" className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Order Status</Link>
+                        <Link to="/faq" className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Shopping Help</Link>
+                        <Link to="/cart" className="btn btn-light rounded-pill px-4 fw-medium shadow-sm" style={{ fontSize: '14px' }}>Your Saves</Link>
                     </div>
                 </div>
 

@@ -140,7 +140,6 @@ const ProductCard = ({ product, onDelete }) => {
                     )}
                     <img 
                         src={imageUrl} 
-                        srcSet={`${imageUrl}?w=400&dpr=1 1x, ${imageUrl}?w=800&dpr=2 2x`}
                         alt={product.title} 
                         loading="lazy"
                         decoding="async"

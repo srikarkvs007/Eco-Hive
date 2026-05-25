@@ -85,4 +85,40 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Update item quantity
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { quantity } = req.body;
+        
+        // Ensure quantity is positive
+        if (quantity < 1) {
+            return res.status(400).json({ message: 'Quantity must be at least 1' });
+        }
+
+        const item = await prisma.cartItem.findUnique({
+            where: { id },
+            include: { product: true }
+        });
+
+        if (!item) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
+
+        if (item.product.stockQuantity < quantity) {
+            return res.status(400).json({ message: `Only ${item.product.stockQuantity} items left in stock.` });
+        }
+
+        const updatedItem = await prisma.cartItem.update({
+            where: { id },
+            data: { quantity: parseInt(quantity) }
+        });
+
+        res.json(updatedItem);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

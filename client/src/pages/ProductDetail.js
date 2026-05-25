@@ -177,7 +177,6 @@ const ProductDetail = () => {
                         >
                         <img 
                             src={imageUrl} 
-                            srcSet={`${imageUrl}?w=800&dpr=1 1x, ${imageUrl}?w=1600&dpr=2 2x`}
                             alt={product.title} 
                             fetchpriority="high"
                             decoding="sync"
@@ -260,17 +259,29 @@ const ProductDetail = () => {
 
                         <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
                             <span className="fw-bolder me-4 text-dark text-uppercase small" style={{ letterSpacing: '1px' }}>Quantity</span>
-                            <div className="d-flex align-items-center bg-white rounded-pill shadow-sm" style={{ padding: '4px', border: 'var(--glass-border)' }}>
-                                <button className="btn btn-sm btn-light rounded-circle" style={{ width: '36px', height: '36px' }} onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                            <div className="d-flex align-items-center border rounded-pill px-2 py-1" style={{ borderColor: '#e1e1e1', backgroundColor: 'transparent' }}>
+                                <button 
+                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark rounded-circle" 
+                                    style={{ width: '32px', height: '32px', backgroundColor: '#f8f9fa' }} 
+                                    onClick={() => setQuantity(Math.max(1, Number(quantity) - 1))}
+                                >
+                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>−</span>
+                                </button>
                                 <input 
                                     type="number" 
-                                    className="form-control border-0 text-center bg-transparent" 
+                                    className="form-control border-0 text-center bg-transparent shadow-none text-dark px-1" 
                                     value={quantity} 
                                     min="1" 
                                     onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                    style={{ fontWeight: '600', width: '50px', WebkitAppearance: 'none' }}
+                                    style={{ fontWeight: '600', width: '50px', fontSize: '16px', MozAppearance: 'textfield' }}
                                 />
-                                <button className="btn btn-sm btn-light rounded-circle" style={{ width: '36px', height: '36px' }} onClick={() => setQuantity(quantity + 1)}>+</button>
+                                <button 
+                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark rounded-circle" 
+                                    style={{ width: '32px', height: '32px', backgroundColor: '#f8f9fa' }} 
+                                    onClick={() => setQuantity(Number(quantity) + 1)}
+                                >
+                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>+</span>
+                                </button>
                             </div>
                             <span className="ms-auto text-muted fw-medium small">
                                 {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}

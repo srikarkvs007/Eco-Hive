@@ -23,6 +23,7 @@ import Settings from './pages/Settings';
 import OrderSuccess from './pages/OrderSuccess';
 import Chatbot from './components/Chatbot';
 import CursorAura from './components/CursorAura';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const ProtectedRoute = ({ children, allowedRole, allowedRoles }) => {
     const role = localStorage.getItem('role');
@@ -95,12 +96,14 @@ const AnimatedRoutes = () => {
 function App()
 {
     return(
-        <BrowserRouter>
-            <CursorAura />
-            <AnimatedRoutes />
-            <Chatbot />
-            <Toaster position="top-center" reverseOrder={false} />
-        </BrowserRouter>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <CursorAura />
+                <AnimatedRoutes />
+                <Chatbot />
+                <Toaster position="top-center" reverseOrder={false} />
+            </BrowserRouter>
+        </ErrorBoundary>
     )
 }
 
