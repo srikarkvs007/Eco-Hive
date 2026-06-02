@@ -1,4 +1,4 @@
-import Navbar from '../components/Navbar';
+import AdminLayout from '../components/AdminLayout';
 import axios from 'axios';
 import {useState} from 'react';
 
@@ -23,14 +23,10 @@ function AddVehicle()
     }
 
     return(
-
-        <div>
-
-            <Navbar/>
-
+        <AdminLayout>
             <div className='container mt-5'>
 
-                <div className='card p-4 shadow'>
+                <div className='premium-card p-4'>
 
                     <h2>Add Vehicle</h2>
 
@@ -68,8 +64,7 @@ function AddVehicle()
                 </div>
 
             </div>
-
-        </div>
+        </AdminLayout>
     )
 }
 

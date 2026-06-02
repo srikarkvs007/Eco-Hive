@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import AdminLayout from '../components/AdminLayout';
 
 const AdminCustomerOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -13,7 +12,7 @@ const AdminCustomerOrders = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await axios.get('http://localhost:5001/api/customer-orders/all');
+            const res = await axios.get('http://localhost:5001/api/v1/admin/orders');
             setOrders(res.data);
             setLoading(false);
         } catch (err) {
@@ -22,13 +21,15 @@ const AdminCustomerOrders = () => {
         }
     };
 
-    const updateStatus = async (id, newStatus) => {
+    const updateStatus = async (orderId, newStatus) => {
         try {
-            await axios.put(`http://localhost:5001/api/customer-orders/update-status/${id}`, { status: newStatus });
-            setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+            await axios.patch(`http://localhost:5001/api/v1/admin/orders/${orderId}/status`, { status: newStatus });
+            setOrders(prevOrders => prevOrders.map(order => 
+                order.id === orderId ? { ...order, status: newStatus } : order
+            ));
         } catch (err) {
-            console.error("Error updating status", err);
-            alert("Failed to update status");
+            console.error("Failed to update status", err);
+            alert('Failed to update status');
         }
     };
 
@@ -38,9 +39,8 @@ const AdminCustomerOrders = () => {
     };
 
     return (
-        <div className="bg-light min-vh-100 d-flex flex-column">
-            <Navbar />
-            <div className="container py-5 flex-grow-1">
+        <AdminLayout>
+            <div>
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h2 className="fw-bolder">E-Commerce Orders</h2>
                     <span className="badge bg-primary fs-6">{orders.length} Total Orders</span>
@@ -56,16 +56,21 @@ const AdminCustomerOrders = () => {
                             const isStockAvailable = checkInventory(order.items);
                             return (
                                 <div key={order.id} className="col-12">
-                                    <div className="card border-0 shadow-sm rounded-4">
-                                        <div className="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
+                                    <div className="premium-card">
+                                        <div className="card-header border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center" style={{ backgroundColor: 'var(--surface-color, transparent)', borderTopLeftRadius: 'var(--radius-xl)', borderTopRightRadius: 'var(--radius-xl)' }}>
                                             <div>
                                                 <h5 className="fw-bold mb-1">Order #{order.id.slice(0, 8).toUpperCase()}</h5>
                                                 <p className="text-muted small mb-0">
-                                                    {new Date(order.createdAt).toLocaleString()} • {order.user.name} ({order.user.email})
+                                                    {new Date(order.createdAt).toLocaleString()} • {order.user?.name || 'Unknown User'} ({order.user?.email || 'N/A'})
                                                 </p>
                                             </div>
                                             <div className="text-end">
-                                                <span className={`badge ${order.status === 'Paid' ? 'bg-success' : 'bg-secondary'} mb-2`}>
+                                                <span className={`badge ${
+                                                    order.status === 'Paid' ? 'bg-success' : 
+                                                    order.status === 'Processing' ? 'bg-info text-dark' : 
+                                                    order.status === 'Dispatched' ? 'bg-warning text-dark' : 
+                                                    order.status === 'Delivered' ? 'bg-secondary' : 'bg-primary'
+                                                } mb-2`}>
                                                     {order.status}
                                                 </span>
                                                 <h5 className="fw-bold m-0">${order.totalAmount.toFixed(2)}</h5>
@@ -79,7 +84,7 @@ const AdminCustomerOrders = () => {
 
                                             <div className="table-responsive">
                                                 <table className="table table-sm align-middle mb-0">
-                                                    <thead className="table-light text-muted small">
+                                                    <thead className="text-muted small" style={{ borderBottom: '1px solid var(--glass-border)' }}>
                                                         <tr>
                                                             <th>Item</th>
                                                             <th>Price</th>
@@ -120,10 +125,27 @@ const AdminCustomerOrders = () => {
                                                     <span className="badge bg-danger text-white px-3 py-2 rounded-pill">Insufficient Stock</span>
                                                 )}
                                             </div>
-                                            <div>
-                                                <span className="text-muted small fw-medium">
-                                                    <i className="bi bi-truck me-1"></i> Logistics managed by Smart Dispatch
-                                                </span>
+                                            <div className="d-flex align-items-center gap-2">
+                                                {order.status === 'Paid' && (
+                                                    <button className="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-medium" onClick={() => updateStatus(order.id, 'Processing')}>
+                                                        ⚙️ Process Order
+                                                    </button>
+                                                )}
+                                                {order.status === 'Processing' && (
+                                                    <button className="btn btn-sm btn-warning rounded-pill px-3 py-2 fw-medium text-dark" onClick={() => updateStatus(order.id, 'Dispatched')}>
+                                                        🚚 Dispatch Order
+                                                    </button>
+                                                )}
+                                                {order.status === 'Dispatched' && (
+                                                    <button className="btn btn-sm btn-success rounded-pill px-3 py-2 fw-medium" onClick={() => updateStatus(order.id, 'Delivered')}>
+                                                        ✓ Deliver Order
+                                                    </button>
+                                                )}
+                                                {order.status === 'Delivered' && (
+                                                    <span className="text-success small fw-bold">
+                                                        ✓ Completed
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -133,8 +155,7 @@ const AdminCustomerOrders = () => {
                     </div>
                 )}
             </div>
-            <Footer />
-        </div>
+        </AdminLayout>
     );
 };
 

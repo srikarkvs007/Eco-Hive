@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 const ProductCard = ({ product, onDelete }) => {
-    const [quantity, setQuantity] = useState(1);
+    const [quantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const [isWishlisted, setIsWishlisted] = useState(() => {
@@ -120,16 +120,18 @@ const ProductCard = ({ product, onDelete }) => {
             )}
             
             {/* Wishlist Button (Top Left) */}
-            <motion.button 
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleWishlist}
-                className="btn position-absolute" 
-                style={{ top: '16px', left: '16px', zIndex: 10, borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isWishlisted ? '#ffeff1' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', border: 'none', color: isWishlisted ? '#ff2d55' : '#86868b', fontSize: '18px' }}
-                title="Toggle Wishlist"
-            >
-                {isWishlisted ? '♥' : '♡'}
-            </motion.button>
+            {role !== 'Admin' && (
+                <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleWishlist}
+                    className="btn position-absolute" 
+                    style={{ top: '16px', left: '16px', zIndex: 10, borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isWishlisted ? '#ffeff1' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(10px)', border: 'none', color: isWishlisted ? '#ff2d55' : '#86868b', fontSize: '18px' }}
+                    title="Toggle Wishlist"
+                >
+                    {isWishlisted ? '♥' : '♡'}
+                </motion.button>
+            )}
 
             <Link to={`/product/${product.id}`} className="text-decoration-none text-dark d-flex flex-column w-100 h-100" style={{ filter: product.stockQuantity <= 0 ? 'grayscale(1)' : 'none' }}>
                 <div className="position-relative w-100 aspect-portrait" style={{ backgroundColor: 'var(--surface-color)' }}>
@@ -172,24 +174,26 @@ const ProductCard = ({ product, onDelete }) => {
             </Link>
 
             {/* Slide-up CTA */}
-            <div className="cta-slide-up">
-                <button 
-                    onClick={handleAddToCart} 
-                    className="btn btn-primary w-100 rounded-pill py-3 fw-medium shadow-lg"
-                    disabled={isAdding || product.stockQuantity <= 0}
-                    style={{ fontSize: '15px', letterSpacing: '-0.01em', backdropFilter: 'blur(10px)' }}
-                >
-                    {isAdding ? (
-                        <><span className="spinner-border spinner-border-sm me-2"></span> Adding</>
-                    ) : isAdded ? (
-                        'Added ✓'
-                    ) : product.stockQuantity <= 0 ? (
-                        'Out of Stock'
-                    ) : (
-                        'Add to Cart'
-                    )}
-                </button>
-            </div>
+            {role !== 'Admin' && (
+                <div className="cta-slide-up">
+                    <button 
+                        onClick={handleAddToCart} 
+                        className="btn btn-primary w-100 rounded-pill py-3 fw-medium shadow-lg"
+                        disabled={isAdding || product.stockQuantity <= 0}
+                        style={{ fontSize: '15px', letterSpacing: '-0.01em', backdropFilter: 'blur(10px)' }}
+                    >
+                        {isAdding ? (
+                            <><span className="spinner-border spinner-border-sm me-2"></span> Adding</>
+                        ) : isAdded ? (
+                            'Added ✓'
+                        ) : product.stockQuantity <= 0 ? (
+                            'Out of Stock'
+                        ) : (
+                            'Add to Cart'
+                        )}
+                    </button>
+                </div>
+            )}
             
             {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
                 <div 

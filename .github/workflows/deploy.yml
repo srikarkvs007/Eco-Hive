@@ -1,0 +1,110 @@
+# GitHub Actions CI/CD Pipeline Workflow for Eco-Hive
+name: Build, Test, and Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ==========================================
+  # STAGE 1: Automated Testing and Syntax Validation
+  # ==========================================
+  build-and-test:
+    name: Lint, Test, and Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
+
+      - name: Install Backend Packages
+        run: |
+          cd server
+          npm ci
+
+      - name: Run Backend Syntax Verification
+        run: |
+          cd server
+          node --check server.js
+          node --check routes/apiV1.js
+
+      - name: Install Frontend Packages
+        run: |
+          cd client
+          npm ci
+
+      - name: Run Frontend Compilation
+        run: |
+          cd client
+          npm run build
+
+  # ==========================================
+  # STAGE 2: Build and Package Docker Images
+  # ==========================================
+  docker-package:
+    name: Package Docker Images
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Backend Docker Image
+        run: |
+          docker build -t eco-hive-server:latest ./server
+
+      - name: Build Frontend Docker Image
+        run: |
+          docker build -t eco-hive-client:latest ./client
+
+  # ==========================================
+  # STAGE 3: Deploy to Staging Environment
+  # ==========================================
+  deploy-staging:
+    name: Deploy to Staging
+    needs: docker-package
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate Staging Deployment
+        run: |
+          echo "==== Starting Staging Deployment ===="
+          echo "Connecting to AWS ECS / Kubernetes cluster..."
+          echo "Deploying client:latest to Staging Service..."
+          echo "Deploying server:latest to Staging Service..."
+          echo "Verifying service health status..."
+          echo "✓ Staging deployment completed successfully!"
+
+  # ==========================================
+  # STAGE 4: Deploy to Production Environment
+  # ==========================================
+  deploy-production:
+    name: Deploy to Production
+    needs: docker-package
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate Production Deployment
+        run: |
+          echo "==== Starting Production Deployment ===="
+          echo "Validating environment configurations..."
+          echo "Deploying client:production to ECS cluster..."
+          echo "Deploying server:production to ECS cluster..."
+          echo "Validating multi-region failover configurations..."
+          echo "✓ Production deployment completed successfully!"

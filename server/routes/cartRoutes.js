@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
+const { verifyToken } = require('../middleware/auth');
 
 // Get all cart items for a user
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
         const cartItems = await prisma.cartItem.findMany({
@@ -18,7 +19,7 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Add an item to the cart
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
         const requestedQuantity = quantity || 1;
@@ -70,7 +71,7 @@ router.post('/', async (req, res) => {
 });
 
 // Remove an item from the cart
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -86,7 +87,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Update item quantity
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { quantity } = req.body;

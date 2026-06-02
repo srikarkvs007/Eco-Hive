@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 // Get all categories
 router.get('/categories', async (req, res) => {
@@ -103,9 +104,9 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new product (Admin route)
-router.post('/', async (req, res) => {
+router.post('/', verifyAdmin, async (req, res) => {
     try {
-        const { title, description, features, specifications, perfectFor, price, stockQuantity, imageUrl, isEcoFriendly, categoryId } = req.body;
+        const { title, description, features, specifications, perfectFor, price, stockQuantity, imageUrl, isEcoFriendly, categoryId, sku, regionId } = req.body;
         
         const newProduct = await prisma.product.create({
             data: {
@@ -118,7 +119,9 @@ router.post('/', async (req, res) => {
                 stockQuantity: parseInt(stockQuantity),
                 imageUrl,
                 isEcoFriendly: Boolean(isEcoFriendly),
-                categoryId
+                categoryId,
+                sku: sku || null,
+                regionId: regionId || null
             }
         });
 
@@ -129,8 +132,39 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update a product (Admin route)
+router.put('/:id', verifyAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, features, specifications, perfectFor, price, stockQuantity, imageUrl, isEcoFriendly, categoryId, sku, regionId } = req.body;
+
+        const updatedProduct = await prisma.product.update({
+            where: { id },
+            data: {
+                title,
+                description,
+                features,
+                specifications,
+                perfectFor,
+                price: price !== undefined ? parseFloat(price) : undefined,
+                stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity) : undefined,
+                imageUrl,
+                isEcoFriendly: isEcoFriendly !== undefined ? Boolean(isEcoFriendly) : undefined,
+                categoryId,
+                sku: sku !== undefined ? (sku || null) : undefined,
+                regionId: regionId !== undefined ? (regionId || null) : undefined
+            }
+        });
+
+        res.json(updatedProduct);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error updating product' });
+    }
+});
+
 // Delete a product (Admin route)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         

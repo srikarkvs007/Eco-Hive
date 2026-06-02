@@ -32,7 +32,10 @@ const Cart = () => {
 
     const handleUpdateQuantity = async (id, currentQuantity, change, maxStock) => {
         const newQuantity = currentQuantity + change;
-        if (newQuantity < 1) return;
+        if (newQuantity < 1) {
+            handleRemove(id);
+            return;
+        }
         if (newQuantity > maxStock) {
             toast.error(`Only ${maxStock} items left in stock.`);
             return;
@@ -58,8 +61,16 @@ const Cart = () => {
         }
     };
 
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+    };
+
+    const calculateTax = () => {
+        return calculateSubtotal() * 0.08;
+    };
+
     const calculateTotal = () => {
-        return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0).toFixed(2);
+        return (calculateSubtotal() + calculateTax()).toFixed(2);
     };
 
     const userId = localStorage.getItem('userId');
@@ -127,7 +138,11 @@ const Cart = () => {
                                     <h4 className="fw-bolder mb-5 text-dark" style={{ fontSize: '28px' }}>Order Summary</h4>
                                     <div className="d-flex justify-content-between mb-4">
                                         <span className="text-muted">Subtotal ({cartItems.length} items)</span>
-                                        <span className="fw-medium text-dark">${calculateTotal()}</span>
+                                        <span className="fw-medium text-dark">${calculateSubtotal().toFixed(2)}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mb-4">
+                                        <span className="text-muted">Estimated Tax (8%)</span>
+                                        <span className="fw-medium text-dark">${calculateTax().toFixed(2)}</span>
                                     </div>
                                     <div className="d-flex justify-content-between mb-4">
                                         <span className="text-muted">Eco-Delivery</span>

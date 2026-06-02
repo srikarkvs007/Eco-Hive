@@ -54,7 +54,7 @@ const EcoProductsCategory = () => {
                 </div>
             </div>
 
-            <div className="container py-5 flex-grow-1">
+            <div className="container py-5 flex-grow-1" style={{ paddingTop: '160px' }}>
                 <div className="d-flex justify-content-between align-items-center mb-4">
                     <h4 className="fw-bold mb-0 text-dark">Showing all {products.length} products</h4>
                     

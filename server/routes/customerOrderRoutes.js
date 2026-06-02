@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
 const activeDeliveries = require('../trackingStore');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 // POST /api/customer-orders/checkout
 // Convert user cart to a CustomerOrder
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', verifyToken, async (req, res) => {
     try {
         const { userId, shippingAddress } = req.body;
 
@@ -41,13 +43,30 @@ router.post('/checkout', async (req, res) => {
             });
         }
 
+        // Fetch customer region to assign matching Admin
+        const customer = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+        const regionId = customer ? customer.regionId : null;
+        let assignedAdminId = null;
+        if (regionId) {
+            const admin = await prisma.user.findFirst({
+                where: { role: 'Admin', regionId }
+            });
+            if (admin) {
+                assignedAdminId = admin.id;
+            }
+        }
+
         // Create the CustomerOrder
         const newOrder = await prisma.customerOrder.create({
             data: {
                 userId,
                 totalAmount,
-                shippingAddress,
+                shippingAddress: encrypt(shippingAddress),
                 status: 'Paid', // Assuming payment went through mock gateway
+                regionId,
+                assignedAdminId,
                 items: {
                     create: cartItems.map(item => ({
                         productId: item.productId,
@@ -61,6 +80,13 @@ router.post('/checkout', async (req, res) => {
         // Clear the user's cart
         await prisma.cartItem.deleteMany({
             where: { userId }
+        });
+
+        // Award Eco-Points (e.g., 1 point per $10 spent)
+        const earnedPoints = Math.floor(totalAmount / 10);
+        await prisma.user.update({
+            where: { id: userId },
+            data: { ecoPoints: { increment: earnedPoints } }
         });
 
         // Track Order Activity
@@ -80,8 +106,8 @@ router.post('/checkout', async (req, res) => {
 
         const logisticsOrder = await prisma.order.create({
             data: {
-                pickupLocation: 'Eco-Hive Main Warehouse',
-                dropLocation: shippingAddress || 'Customer Address',
+                pickupLocation: encrypt('Eco-Hive Main Warehouse'),
+                dropLocation: encrypt(shippingAddress || 'Customer Address'),
                 packageType: 'Eco-Friendly Box',
                 weight: weight,
                 sensitivity: 'Standard',
@@ -116,12 +142,13 @@ router.post('/checkout', async (req, res) => {
 });
 
 // GET /api/customer-orders/all
-// Admin: Get all e-commerce orders with details
-router.get('/all', async (req, res) => {
+// Admin: Get all e-commerce orders with details (geographically assigned to admin)
+router.get('/all', verifyAdmin, async (req, res) => {
     try {
-        const orders = await prisma.customerOrder.findMany({
+        const adminRegion = req.admin.regionId;
+        const queryOptions = {
             include: {
-                user: { select: { name: true, email: true } },
+                user: { select: { name: true, email: true, phone: true, address: true, contactInfo: true } },
                 items: {
                     include: {
                         product: true
@@ -129,8 +156,29 @@ router.get('/all', async (req, res) => {
                 }
             },
             orderBy: { createdAt: 'desc' }
-        });
-        res.json(orders);
+        };
+
+        // Filter orders by admin's region if set
+        if (adminRegion) {
+            queryOptions.where = {
+                regionId: adminRegion
+            };
+        }
+
+        const orders = await prisma.customerOrder.findMany(queryOptions);
+        
+        const decryptedOrders = orders.map(o => ({
+            ...o,
+            shippingAddress: decrypt(o.shippingAddress),
+            user: o.user ? {
+                ...o.user,
+                phone: decrypt(o.user.phone),
+                address: decrypt(o.user.address),
+                contactInfo: decrypt(o.user.contactInfo)
+            } : null
+        }));
+        
+        res.json(decryptedOrders);
     } catch (err) {
         console.error("Error fetching orders:", err);
         res.status(500).json({ message: 'Server error' });
@@ -139,7 +187,7 @@ router.get('/all', async (req, res) => {
 
 // GET /api/customer-orders/:id
 // Get details for a specific order (for Success Page)
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const order = await prisma.customerOrder.findUnique({
@@ -151,7 +199,11 @@ router.get('/:id', async (req, res) => {
             }
         });
         if (!order) return res.status(404).json({ message: 'Order not found' });
-        res.json(order);
+        
+        res.json({
+            ...order,
+            shippingAddress: decrypt(order.shippingAddress)
+        });
     } catch (err) {
         console.error("Error fetching order by ID:", err);
         res.status(500).json({ message: 'Server error' });
@@ -160,7 +212,7 @@ router.get('/:id', async (req, res) => {
 
 // GET /api/customer-orders/user/:userId
 // User: Get past orders for a specific user
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
         const orders = await prisma.customerOrder.findMany({
@@ -174,7 +226,13 @@ router.get('/user/:userId', async (req, res) => {
             },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(orders);
+        
+        const decryptedOrders = orders.map(o => ({
+            ...o,
+            shippingAddress: decrypt(o.shippingAddress)
+        }));
+        
+        res.json(decryptedOrders);
     } catch (err) {
         console.error("Error fetching user orders:", err);
         res.status(500).json({ message: 'Server error' });
@@ -183,7 +241,7 @@ router.get('/user/:userId', async (req, res) => {
 
 // PUT /api/customer-orders/update-status/:id
 // Admin: Update Status
-router.put('/update-status/:id', async (req, res) => {
+router.put('/update-status/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -191,12 +249,37 @@ router.put('/update-status/:id', async (req, res) => {
         const updated = await prisma.customerOrder.update({
             where: { id },
             data: { status },
-            include: { items: true } // Include items to calculate total quantity for smart dispatch
+            include: { items: true }
         });
 
-        // Removed: Smart Dispatch is now handled automatically during Checkout
+        // Also update any linked logistics orders status
+        if (status === 'Dispatched') {
+            await prisma.order.updateMany({
+                where: { customerOrderId: id },
+                data: { status: 'In Transit' }
+            });
+        } else if (status === 'Delivered') {
+            await prisma.order.updateMany({
+                where: { customerOrderId: id },
+                data: { status: 'Delivered' }
+            });
+            // Also clean up from active tracking map
+            const logistics = await prisma.order.findMany({ where: { customerOrderId: id } });
+            logistics.forEach(l => activeDeliveries.delete(l.id));
+        }
+
+        const io = req.app.get('io');
+        if (io) {
+            io.emit('order_status_updated', {
+                orderId: updated.id,
+                status: status
+            });
+        }
         
-        res.json(updated);
+        res.json({
+            ...updated,
+            shippingAddress: decrypt(updated.shippingAddress)
+        });
     } catch (err) {
         console.error("Error updating order status:", err);
         res.status(500).json({ message: 'Server error' });

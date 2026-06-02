@@ -12,6 +12,7 @@ const ProductDetail = () => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
+    const role = localStorage.getItem('role');
     const [isAdding, setIsAdding] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
@@ -134,7 +135,7 @@ const ProductDetail = () => {
 
     if (loading) {
         return (
-            <div style={{ backgroundColor: '#f5f5f7', minHeight: '100vh' }}>
+            <div className="bg-light" style={{ minHeight: '100vh' }}>
                 <Navbar showSearch={false} />
                 <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
                     <div className="spinner-border text-primary" role="status">
@@ -147,7 +148,7 @@ const ProductDetail = () => {
 
     if (!product) {
         return (
-            <div style={{ backgroundColor: '#f5f5f7', minHeight: '100vh' }}>
+            <div className="bg-light" style={{ minHeight: '100vh' }}>
                 <Navbar showSearch={false} />
                 <div className="container text-center py-5">
                     <h2>Product not found.</h2>
@@ -159,7 +160,7 @@ const ProductDetail = () => {
     const imageUrl = product.imageUrl || 'https://via.placeholder.com/600x600?text=Eco-Hive+Product';
 
     return (
-        <div style={{ backgroundColor: '#f5f5f7', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className="bg-light" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <SEO 
                 title={`${product.title} - Eco-Hive`} 
                 description={product.description || product.features || 'Premium eco-friendly product from Eco-Hive.'} 
@@ -257,65 +258,69 @@ const ProductDetail = () => {
                             </p>
                         </div>
 
-                        <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
-                            <span className="fw-bolder me-4 text-dark text-uppercase small" style={{ letterSpacing: '1px' }}>Quantity</span>
-                            <div className="d-flex align-items-center border rounded-pill px-2 py-1" style={{ borderColor: '#e1e1e1', backgroundColor: 'transparent' }}>
-                                <button 
-                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark rounded-circle" 
-                                    style={{ width: '32px', height: '32px', backgroundColor: '#f8f9fa' }} 
-                                    onClick={() => setQuantity(Math.max(1, Number(quantity) - 1))}
-                                >
-                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>−</span>
-                                </button>
-                                <input 
-                                    type="number" 
-                                    className="form-control border-0 text-center bg-transparent shadow-none text-dark px-1" 
-                                    value={quantity} 
-                                    min="1" 
-                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                    style={{ fontWeight: '600', width: '50px', fontSize: '16px', MozAppearance: 'textfield' }}
-                                />
-                                <button 
-                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark rounded-circle" 
-                                    style={{ width: '32px', height: '32px', backgroundColor: '#f8f9fa' }} 
-                                    onClick={() => setQuantity(Number(quantity) + 1)}
-                                >
-                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>+</span>
-                                </button>
-                            </div>
-                            <span className="ms-auto text-muted fw-medium small">
-                                {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
-                            </span>
-                        </div>
+                        {role !== 'Admin' && (
+                            <>
+                                <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                    <span className="fw-bolder me-4 text-dark text-uppercase small" style={{ letterSpacing: '1px' }}>Quantity</span>
+                                    <div className="d-flex align-items-center border rounded-pill px-2 py-1" style={{ borderColor: '#e1e1e1', backgroundColor: 'transparent' }}>
+                                        <button 
+                                            className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
+                                            style={{ width: '32px', height: '32px' }} 
+                                            onClick={() => setQuantity(Math.max(1, Number(quantity) - 1))}
+                                        >
+                                            <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>−</span>
+                                        </button>
+                                        <input 
+                                            type="number" 
+                                            className="form-control border-0 text-center bg-transparent shadow-none text-dark px-1" 
+                                            value={quantity} 
+                                            min="1" 
+                                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                            style={{ fontWeight: '600', width: '50px', fontSize: '16px', MozAppearance: 'textfield' }}
+                                        />
+                                        <button 
+                                            className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
+                                            style={{ width: '32px', height: '32px' }} 
+                                            onClick={() => setQuantity(Number(quantity) + 1)}
+                                        >
+                                            <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>+</span>
+                                        </button>
+                                    </div>
+                                    <span className="ms-auto text-muted fw-medium small">
+                                        {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+                                    </span>
+                                </div>
 
-                        <div className="d-flex gap-3 mt-4">
-                            <button 
-                                onClick={handleAddToCart} 
-                                className={`btn rounded-pill fw-medium px-4 py-3 flex-grow-1 ${isAdded ? 'btn-success text-white' : 'btn-outline-secondary'}`}
-                                disabled={product.stockQuantity <= 0 || isAdding}
-                            >
-                                {isAdding ? (
-                                    <><span className="spinner-border spinner-border-sm me-2"></span> Adding...</>
-                                ) : isAdded ? (
-                                    'Added ✓'
-                                ) : product.stockQuantity <= 0 ? (
-                                    'Out of Stock'
-                                ) : (
-                                    'Add to Cart'
+                                <div className="d-flex gap-3 mt-4">
+                                    <button 
+                                        onClick={handleAddToCart} 
+                                        className={`btn rounded-pill fw-medium px-4 py-3 flex-grow-1 ${isAdded ? 'btn-success text-white' : 'btn-outline-secondary'}`}
+                                        disabled={product.stockQuantity <= 0 || isAdding}
+                                    >
+                                        {isAdding ? (
+                                            <><span className="spinner-border spinner-border-sm me-2"></span> Adding...</>
+                                        ) : isAdded ? (
+                                            'Added ✓'
+                                        ) : product.stockQuantity <= 0 ? (
+                                            'Out of Stock'
+                                        ) : (
+                                            'Add to Cart'
+                                        )}
+                                    </button>
+                                    <button 
+                                        onClick={handleBuyNow} 
+                                        className="btn btn-primary rounded-pill fw-medium px-4 py-3 flex-grow-1" 
+                                        disabled={product.stockQuantity <= 0}
+                                    >
+                                        Buy Now
+                                    </button>
+                                </div>
+                                {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
+                                    <div className="mt-3 text-center text-danger fw-bold fs-5">
+                                        🔥 Hurry! Only {product.stockQuantity} left in stock.
+                                    </div>
                                 )}
-                            </button>
-                            <button 
-                                onClick={handleBuyNow} 
-                                className="btn btn-primary rounded-pill fw-medium px-4 py-3 flex-grow-1" 
-                                disabled={product.stockQuantity <= 0}
-                            >
-                                Buy Now
-                            </button>
-                        </div>
-                        {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
-                            <div className="mt-3 text-center text-danger fw-bold fs-5">
-                                🔥 Hurry! Only {product.stockQuantity} left in stock.
-                            </div>
+                            </>
                         )}
                     </div>
                 </div>
@@ -323,10 +328,10 @@ const ProductDetail = () => {
                 <div className="row mt-5 pt-5">
                     <div className="col-12">
                         <div className="card border-0 rounded-5 p-5" style={{ backgroundColor: 'var(--bg-elevated)' }}>
-                            <h3 className="fw-bolder mb-5" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Customer Reviews</h3>
+                            <h3 className="fw-bolder mb-5 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Customer Reviews</h3>
                             <div className="row g-5">
                                 <div className="col-md-5 mb-4 mb-md-0">
-                                    <h5 className="fw-bold mb-4">Write a Review</h5>
+                                    <h5 className="fw-bold mb-4 text-dark">Write a Review</h5>
                                     <form onSubmit={submitReview}>
                                         <div className="mb-3 d-flex align-items-center">
                                             <div className="me-3 text-muted">Your Rating:</div>
@@ -392,7 +397,7 @@ const ProductDetail = () => {
                 {recommendations.length > 0 && (
                     <div className="row mt-5">
                         <div className="col-12">
-                            <h3 className="fw-bold mb-4">You May Also Like</h3>
+                            <h3 className="fw-bold mb-4 text-dark">You May Also Like</h3>
                             <div className="row g-4">
                                 {recommendations.map(rec => (
                                     <div key={rec.id} className="col-12 col-md-4">

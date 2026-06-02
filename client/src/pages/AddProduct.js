@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Navbar from '../components/Navbar';
+import AdminLayout from '../components/AdminLayout';
 
 const AddProduct = () => {
     const [formData, setFormData] = useState({
@@ -76,7 +76,8 @@ const AddProduct = () => {
     };
 
     return (
-        <div>
+        <AdminLayout>
+            <div className="pb-5">
             {overlayState && (
                 <div 
                     className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center" 
@@ -126,11 +127,10 @@ const AddProduct = () => {
                     )}
                 </div>
             )}
-            <Navbar />
             <div className="container py-5">
                 <div className="row justify-content-center">
                     <div className="col-md-8">
-                        <div className="card shadow-sm border-0 rounded-4">
+                        <div className="premium-card">
                             <div className="card-body p-5">
                                 <h2 className="fw-bold mb-4">Add New Product</h2>
                                 {message && (
@@ -269,7 +269,8 @@ const AddProduct = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AdminLayout>
     );
 };
 

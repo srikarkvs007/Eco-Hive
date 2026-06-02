@@ -1,4 +1,4 @@
-import Navbar from '../components/Navbar';
+import AdminLayout from '../components/AdminLayout';
 import axios from 'axios';
 import { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -10,9 +10,9 @@ function AddOrder() {
     const [weight, setWeight] = useState('');
     const [sensitivity, setSensitivity] = useState('Standard');
     const [isPremium, setIsPremium] = useState(false);
-    
+
     const [isScanning, setIsScanning] = useState(false);
-    const [scanResult, setScanResult] = useState('');
+    const [, setScanResult] = useState('');
     const [scanMethod, setScanMethod] = useState('ocr'); // 'ocr', 'camera', or 'qr'
     const [pendingStoreOrders, setPendingStoreOrders] = useState([]);
 
@@ -31,14 +31,14 @@ function AddOrder() {
                 const res = await axios.post('http://localhost:5001/api/orders/scan', {
                     imageBase64: reader.result
                 });
-                
+
                 const data = res.data;
                 if (data.pickupLocation) setPickupLocation(data.pickupLocation);
                 if (data.dropLocation) setDropLocation(data.dropLocation);
                 if (data.packageType) setPackageType(data.packageType);
                 if (data.weight !== undefined) setWeight(data.weight);
                 if (data.sensitivity) setSensitivity(data.sensitivity);
-                
+
                 setScanResult(JSON.stringify(data, null, 2));
                 alert('Scan Complete! Fields have been auto-filled.');
             } catch (err) {
@@ -79,22 +79,22 @@ function AddOrder() {
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
+
         const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
         setIsScanning(true);
-        
+
         try {
             const res = await axios.post('http://localhost:5001/api/orders/scan', {
                 imageBase64: imageDataUrl
             });
-            
+
             const data = res.data;
             if (data.pickupLocation) setPickupLocation(data.pickupLocation);
             if (data.dropLocation) setDropLocation(data.dropLocation);
             if (data.packageType) setPackageType(data.packageType);
             if (data.weight !== undefined) setWeight(data.weight);
             if (data.sensitivity) setSensitivity(data.sensitivity);
-            
+
             setScanResult(JSON.stringify(data, null, 2));
             alert('Scan Complete! Fields have been auto-filled.');
         } catch (err) {
@@ -109,7 +109,7 @@ function AddOrder() {
     const parseQRText = (rawText) => {
         setScanResult(rawText);
         let text = rawText.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-        
+
         const pickupKeys = ['pickup', 'pckup', 'pick up'];
         const dropKeys = ['drop', 'prop', 'dest', 'to '];
         const pkgKeys = ['package', 'vackage', 'type', 'item'];
@@ -137,9 +137,9 @@ function AddOrder() {
 
         indices.forEach((item, i) => {
             const start = item.idx;
-            const end = i < indices.length - 1 ? indices[i+1].idx : text.length;
-            let val = text.substring(start, end).replace(/^[|;:!\-\s]+|[|;:!\-\s]+$/g, '').trim();
-            const separatorMatch = val.match(/^.{0,15}?([:;\-])/);
+            const end = i < indices.length - 1 ? indices[i + 1].idx : text.length;
+            let val = text.substring(start, end).replace(/^[|;:!-\s]+|[|;:!-\s]+$/g, '').trim();
+            const separatorMatch = val.match(/^.{0,15}?([:;-])/);
             if (separatorMatch) val = val.substring(separatorMatch.index + 1).trim();
             else val = val.replace(/^(location|loc|lo\s*tion|lo\s*[a-z0-9]+|type|typ)\s*/i, '').trim();
 
@@ -163,14 +163,14 @@ function AddOrder() {
     useEffect(() => {
         let scanner = null;
         if (scanMethod === 'qr') {
-            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
             scanner.render(
                 (decodedText) => {
                     scanner.clear();
                     setScanMethod('none');
                     parseQRText(decodedText);
                 },
-                (error) => {}
+                (error) => { }
             );
         } else if (scanMethod === 'camera') {
             startCamera();
@@ -200,14 +200,14 @@ function AddOrder() {
         setPickupLocation('Eco-Hive Main Warehouse');
         setDropLocation(order.shippingAddress || 'Customer Address');
         setPackageType('Eco-Friendly Box');
-        
+
         // Estimate weight based on items
         const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0);
         setWeight(totalItems * 1.5);
-        
+
         setSensitivity('Standard');
         setIsPremium(true);
-        alert(`Auto-filled details for Store Order #${order.id.slice(0,8).toUpperCase()}`);
+        alert(`Auto-filled details for Store Order #${order.id.slice(0, 8).toUpperCase()}`);
     };
 
     const addOrder = async () => {
@@ -224,7 +224,7 @@ function AddOrder() {
             const assignedMode = res.data.order.deliveryMode;
             const extraFee = res.data.order.extraFee;
             alert(`Order Added! Assigned Delivery: ${assignedMode} ${extraFee > 0 ? `(Extra Fee: $${extraFee})` : ''}`);
-            
+
             // Reset form
             setPickupLocation(''); setDropLocation(''); setPackageType('');
             setWeight(''); setSensitivity('Standard'); setIsPremium(false); setScanResult('');
@@ -235,20 +235,19 @@ function AddOrder() {
     };
 
     return (
-        <div className="bg-light min-vh-100">
-            <Navbar />
-            <div className='container mt-5'>
-                <div className='card border-0 shadow-sm rounded-4 p-5 max-w-2xl mx-auto mb-5'>
+        <AdminLayout>
+            <div>
+                <div className='premium-card p-5 max-w-2xl mx-auto mb-5'>
                     <h2 className="fw-bold mb-4">Smart Dispatch: Add Order</h2>
-                    
+
                     {/* Store Orders Integration */}
                     {pendingStoreOrders.length > 0 && (
                         <div className="mb-4 p-4 bg-light border border-primary rounded-3">
                             <h6 className="fw-bold text-primary mb-3">🛒 Pending Store Orders (Click to Dispatch)</h6>
                             <div className="d-flex flex-wrap gap-2">
                                 {pendingStoreOrders.map(order => (
-                                    <button 
-                                        key={order.id} 
+                                    <button
+                                        key={order.id}
                                         className="btn btn-outline-primary rounded-pill btn-sm fw-medium"
                                         onClick={() => handleAutoFillStoreOrder(order)}
                                     >
@@ -259,7 +258,7 @@ function AddOrder() {
                         </div>
                     )}
 
-                    <div className="mb-4 p-4 bg-white border rounded-3 shadow-sm">
+                    <div className="mb-4 p-4 border rounded-3 shadow-sm" style={{ backgroundColor: 'var(--surface-color, #fff)' }}>
                         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
                             <h5 className="fw-bold text-primary mb-3 mb-md-0">📸 Smart Scanner</h5>
                             <div className="btn-group" role="group">
@@ -296,23 +295,23 @@ function AddOrder() {
                     <div className="row g-3">
                         <div className="col-md-6">
                             <label className="form-label fw-medium">Pickup Location</label>
-                            <input type='text' className='form-control' value={pickupLocation} onChange={(e)=>setPickupLocation(e.target.value)} />
+                            <input type='text' className='form-control' value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} />
                         </div>
                         <div className="col-md-6">
                             <label className="form-label fw-medium">Drop Location</label>
-                            <input type='text' className='form-control' value={dropLocation} onChange={(e)=>setDropLocation(e.target.value)} />
+                            <input type='text' className='form-control' value={dropLocation} onChange={(e) => setDropLocation(e.target.value)} />
                         </div>
                         <div className="col-md-6">
                             <label className="form-label fw-medium">Package Type (Description)</label>
-                            <input type='text' className='form-control' value={packageType} onChange={(e)=>setPackageType(e.target.value)} />
+                            <input type='text' className='form-control' value={packageType} onChange={(e) => setPackageType(e.target.value)} />
                         </div>
                         <div className="col-md-6">
                             <label className="form-label fw-medium">Weight (kg)</label>
-                            <input type='number' step="0.1" className='form-control' value={weight} onChange={(e)=>setWeight(e.target.value)} />
+                            <input type='number' step="0.1" className='form-control' value={weight} onChange={(e) => setWeight(e.target.value)} />
                         </div>
                         <div className="col-md-6">
                             <label className="form-label fw-medium">Sensitivity</label>
-                            <select className='form-select' value={sensitivity} onChange={(e)=>setSensitivity(e.target.value)}>
+                            <select className='form-select' value={sensitivity} onChange={(e) => setSensitivity(e.target.value)}>
                                 <option value="Standard">Standard</option>
                                 <option value="Fragile">Fragile</option>
                                 <option value="Hazardous">Hazardous</option>
@@ -329,7 +328,7 @@ function AddOrder() {
                     </div>
 
                     <div className="mt-4 alert alert-info border-0">
-                        <strong>Smart Routing Engine:</strong> 
+                        <strong>Smart Routing Engine:</strong>
                         <ul className="mb-0 mt-2 small">
                             <li>Packages under 5kg route to <strong>Drone</strong>.</li>
                             <li>Packages over 5kg route to <strong>Van</strong>.</li>
@@ -343,7 +342,7 @@ function AddOrder() {
                     </button>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     )
 }
 

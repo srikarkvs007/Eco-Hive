@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
+const { verifyAdmin } = require('../middleware/auth');
 
-router.post('/add', async (req, res) => {
+router.post('/add', verifyAdmin, async (req, res) => {
     try {
         const newVehicle = await prisma.vehicle.create({
             data: {

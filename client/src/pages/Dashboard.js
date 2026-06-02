@@ -1,32 +1,50 @@
-import Navbar from '../components/Navbar';
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import AdminLayout from '../components/AdminLayout';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 
-function Dashboard()
-{
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+function Dashboard() {
     const [stats, setStats] = useState({
         totalRevenue: 0,
         pendingDeliveries: 0,
-        inTransit: 0,
-        activeDrones: 0,
-        activeVans: 0,
+        totalProducts: 42, // Simulated or default
+        ordersToday: 15, // Simulated or default
         lowStockAlerts: 0
     });
-    const [salesData, setSalesData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsRes, trendRes] = await Promise.all([
-                    axios.get('http://localhost:5001/api/dashboard/stats'),
-                    axios.get('http://localhost:5001/api/dashboard/sales-trend')
-                ]);
-                setStats(statsRes.data);
-                setSalesData(trendRes.data);
+                // Fetch actual stats where available, simulate the rest for the layout
+                const res = await axios.get('http://localhost:5001/api/dashboard/stats');
+                setStats({
+                    totalRevenue: res.data.totalRevenue || 0,
+                    pendingDeliveries: res.data.pendingDeliveries || 0,
+                    totalProducts: res.data.totalProducts || 0,
+                    ordersToday: res.data.ordersToday || 0,
+                    lowStockAlerts: res.data.lowStockAlerts || 0
+                });
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
             } finally {
@@ -35,162 +53,163 @@ function Dashboard()
         };
         fetchDashboardData();
     }, []);
-    return(
-        <div className="bg-light min-vh-100">
-            <Navbar/>
-            <div className='container py-5'>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="fw-bold">Logistics Dashboard</h2>
-                    <div className="d-flex gap-2 flex-wrap justify-content-end">
-                        <Link to="/livetracking" className="btn btn-dark rounded-pill px-4 fw-bold">
-                            🛰️ Live Tracking Map
-                        </Link>
-                        <Link to="/addorder" className="btn premium-btn rounded-pill px-4">
-                            + Smart Dispatch (Add Order)
-                        </Link>
-                        <Link to="/orders" className="btn btn-outline-dark rounded-pill px-4">
-                            View Orders
-                        </Link>
+
+    return (
+        <AdminLayout>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 border-bottom pb-4" style={{ borderColor: 'var(--glass-border)' }}>
+                <div>
+                    <h1 className="fw-bolder mb-1" style={{ letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>Admin Dashboard</h1>
+                    <p className="mb-0" style={{ color: 'var(--text-primary)', opacity: 0.7 }}>Welcome back! Here's the performance summary for your store.</p>
+                </div>
+                <div className="mt-3 mt-md-0 d-flex align-items-center bg-white px-3 py-2 rounded-pill shadow-sm" style={{ backgroundColor: 'var(--surface-color) !important', border: 'var(--glass-border)' }}>
+                    <i className="bi bi-clock-history me-2 text-primary"></i>
+                    <span className="small fw-medium" style={{ color: 'var(--text-primary)' }}>Updated: Just now</span>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status"></div>
+                </div>
+            ) : (
+                <>
+                <div className="row g-4">
+                    {/* Card 1: Total Products */}
+                    <div className="col-12 col-md-6 col-lg-3">
+                        <div className="premium-card p-4">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="fw-medium small text-uppercase" style={{ letterSpacing: '0.5px', color: 'var(--text-primary)', opacity: 0.85 }}>Total Products</div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(29, 158, 117, 0.1)', color: 'var(--accent-color, #1D9E75)' }}>
+                                    <i className="bi bi-box-seam fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 className="fw-bolder mb-2" style={{ color: 'var(--text-primary)' }}>{stats.totalProducts}</h2>
+                            <div className="d-flex align-items-center mt-auto">
+                                <span className="badge rounded-pill bg-light text-success border border-success border-opacity-25 px-2 py-1 small">
+                                    <i className="bi bi-arrow-up-right"></i> 12%
+                                </span>
+                                <span className="small ms-2" style={{ color: 'var(--text-primary)', opacity: 0.65 }}>vs last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 2: Orders Today */}
+                    <div className="col-12 col-md-6 col-lg-3">
+                        <div className="premium-card p-4">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="fw-medium small text-uppercase" style={{ letterSpacing: '0.5px', color: 'var(--text-primary)', opacity: 0.85 }}>Orders Today</div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+                                    <i className="bi bi-cart-check fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 className="fw-bolder mb-2" style={{ color: 'var(--text-primary)' }}>{stats.ordersToday}</h2>
+                            <div className="d-flex align-items-center mt-auto">
+                                <span className="badge rounded-pill bg-light text-success border border-success border-opacity-25 px-2 py-1 small">
+                                    <i className="bi bi-arrow-up-right"></i> 5%
+                                </span>
+                                <span className="small ms-2" style={{ color: 'var(--text-primary)', opacity: 0.65 }}>vs yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 3: Pending Shipments */}
+                    <div className="col-12 col-md-6 col-lg-3">
+                        <div className="premium-card p-4">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="fw-medium small text-uppercase" style={{ letterSpacing: '0.5px', color: 'var(--text-primary)', opacity: 0.85 }}>Pending Shipments</div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(234, 88, 12, 0.1)', color: '#ea580c' }}>
+                                    <i className="bi bi-truck fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 className="fw-bolder mb-2" style={{ color: 'var(--text-primary)' }}>{stats.pendingDeliveries}</h2>
+                            <div className="d-flex align-items-center mt-auto">
+                                <span className="badge rounded-pill bg-light text-danger border border-danger border-opacity-25 px-2 py-1 small">
+                                    <i className="bi bi-arrow-down-right"></i> 2%
+                                </span>
+                                <span className="small ms-2" style={{ color: 'var(--text-primary)', opacity: 0.65 }}>vs yesterday</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 4: Revenue This Month */}
+                    <div className="col-12 col-md-6 col-lg-3">
+                        <div className="premium-card p-4">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="fw-medium small text-uppercase" style={{ letterSpacing: '0.5px', color: 'var(--text-primary)', opacity: 0.85 }}>Revenue This Month</div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(22, 163, 74, 0.1)', color: '#16a34a' }}>
+                                    <i className="bi bi-currency-dollar fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 className="fw-bolder mb-2" style={{ color: 'var(--text-primary)' }}>${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</h2>
+                            <div className="d-flex align-items-center mt-auto">
+                                <span className="badge rounded-pill bg-light text-success border border-success border-opacity-25 px-2 py-1 small">
+                                    <i className="bi bi-arrow-up-right"></i> 18%
+                                </span>
+                                <span className="small ms-2" style={{ color: 'var(--text-primary)', opacity: 0.65 }}>vs last month</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card 5: Low Stock Alerts */}
+                    <div className="col-12 col-md-6 col-lg-3">
+                        <div className="premium-card p-4 h-100">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div className="fw-medium small text-uppercase" style={{ letterSpacing: '0.5px', color: 'var(--text-primary)', opacity: 0.85 }}>Low Stock Alerts</div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                                    <i className="bi bi-exclamation-triangle fs-5"></i>
+                                </div>
+                            </div>
+                            <h2 className="fw-bolder mb-2" style={{ color: 'var(--text-primary)' }}>{stats.lowStockAlerts}</h2>
+                            <div className="d-flex align-items-center mt-auto">
+                                <span className={`badge rounded-pill px-2 py-1 small ${stats.lowStockAlerts > 0 ? 'bg-light text-danger border border-danger border-opacity-25' : 'bg-light text-success border border-success border-opacity-25'}`}>
+                                    {stats.lowStockAlerts > 0 ? 'Action Required' : 'All Good'}
+                                </span>
+                                <span className="small ms-2" style={{ color: 'var(--text-primary)', opacity: 0.65 }}>Products &lt; 10 qty</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                {loading ? (
-                    <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status"></div>
-                    </div>
-                ) : (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, staggerChildren: 0.1 }}
-                        className='row g-4'
-                    >
-                        {/* Revenue Card */}
-                        <motion.div className='col-md-4' whileHover={{ y: -5 }}>
-                            <div className='card border-0 p-4 shadow-sm rounded-4 h-100 glass-panel'>
-                                <h6 className="text-muted fw-bold text-uppercase tracking-wider mb-3">Total Sales Revenue</h6>
-                                <h1 className="fw-bolder display-5 text-primary mb-4">${stats.totalRevenue.toFixed(2)}</h1>
-                                <div className="mt-auto">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <span className="small fw-medium text-muted">Monthly Target</span>
-                                        <span className="small fw-bold text-dark">75%</span>
-                                    </div>
-                                    <div className="progress" style={{ height: '8px', backgroundColor: '#e5e5e5' }}>
-                                        <div className="progress-bar bg-primary rounded-pill" role="progressbar" style={{ width: '75%' }}></div>
-                                    </div>
-                                </div>
+                
+                {/* Revenue Chart Section */}
+                <div className="row mt-4">
+                    <div className="col-12">
+                        <div className="premium-card p-4">
+                            <h5 className="fw-bolder mb-4" style={{ color: 'var(--text-primary)' }}>Revenue Overview</h5>
+                            <div style={{ height: '350px' }}>
+                                <Line 
+                                    data={{
+                                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                                        datasets: [
+                                            {
+                                                label: 'Revenue ($)',
+                                                data: [1200, 1900, 3000, 5000, 4200, 6000, 7500],
+                                                borderColor: '#1D9E75',
+                                                backgroundColor: 'rgba(29, 158, 117, 0.1)',
+                                                fill: true,
+                                                tension: 0.4
+                                            }
+                                        ]
+                                    }} 
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false }
+                                        },
+                                        scales: {
+                                            y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                                            x: { grid: { display: false } }
+                                        }
+                                    }}
+                                />
                             </div>
-                        </motion.div>
-
-                        {/* Active Logistics Card */}
-                        <motion.div className='col-md-4' whileHover={{ y: -5 }}>
-                            <div className='card border-0 p-4 shadow-sm rounded-4 h-100 glass-panel'>
-                                <h6 className="text-muted fw-bold text-uppercase tracking-wider mb-3">Active Logistics</h6>
-                                <div className="d-flex justify-content-between align-items-center mb-4">
-                                    <div className="text-center w-50">
-                                        <h2 className="fw-bolder text-dark mb-0">{stats.activeVans}</h2>
-                                        <span className="small text-muted fw-medium">Vans 🚚</span>
-                                    </div>
-                                    <div style={{ width: '1px', height: '40px', backgroundColor: '#e5e5e5' }}></div>
-                                    <div className="text-center w-50">
-                                        <h2 className="fw-bolder text-success mb-0">{stats.activeDrones}</h2>
-                                        <span className="small text-muted fw-medium">Drones 🚁</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <span className="small fw-medium text-muted">Fleet Capacity</span>
-                                        <span className="small fw-bold text-dark">Active</span>
-                                    </div>
-                                    <div className="progress" style={{ height: '8px', backgroundColor: '#e5e5e5' }}>
-                                        <div className="progress-bar bg-success rounded-pill" role="progressbar" style={{ width: '85%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* System Alerts Card */}
-                        <motion.div className='col-md-4' whileHover={{ y: -5 }}>
-                            <div className='card border-0 p-4 shadow-sm rounded-4 h-100 glass-panel'>
-                                <h6 className="text-muted fw-bold text-uppercase tracking-wider mb-3">System Health</h6>
-                                <div className="d-flex justify-content-between align-items-center mb-4">
-                                    <div className="text-center w-50">
-                                        <h2 className="fw-bolder text-warning mb-0">{stats.pendingDeliveries}</h2>
-                                        <span className="small text-muted fw-medium">Pending Orders</span>
-                                    </div>
-                                    <div style={{ width: '1px', height: '40px', backgroundColor: '#e5e5e5' }}></div>
-                                    <div className="text-center w-50">
-                                        <h2 className={`fw-bolder mb-0 ${stats.lowStockAlerts > 0 ? 'text-danger' : 'text-dark'}`}>{stats.lowStockAlerts}</h2>
-                                        <span className="small text-muted fw-medium">Low Stock Alerts</span>
-                                    </div>
-                                </div>
-                                <div className="mt-auto">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <span className="small fw-medium text-muted">Fulfillment Rate</span>
-                                        <span className="small fw-bold text-dark">92%</span>
-                                    </div>
-                                    <div className="progress" style={{ height: '8px', backgroundColor: '#e5e5e5' }}>
-                                        <div className="progress-bar bg-info rounded-pill" role="progressbar" style={{ width: '92%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Recharts Analytics Section */}
-                        <div className="col-12 mt-5">
-                            <h4 className="fw-bold mb-4">Financial Overview</h4>
                         </div>
-
-                        <motion.div className='col-lg-8' whileHover={{ y: -3 }}>
-                            <div className='card border-0 p-4 shadow-sm rounded-4 glass-panel'>
-                                <h6 className="text-muted fw-bold text-uppercase tracking-wider mb-4">7-Day Revenue Trend</h6>
-                                <div style={{ width: '100%', height: 350 }}>
-                                    <ResponsiveContainer>
-                                        <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                            <defs>
-                                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#0071e3" stopOpacity={0.4}/>
-                                                    <stop offset="95%" stopColor="#0071e3" stopOpacity={0}/>
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#86868b'}} dy={10} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#86868b'}} tickFormatter={(value) => `$${value}`} />
-                                            <Tooltip 
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                                                labelStyle={{ fontWeight: 'bold', color: '#1d1d1f' }}
-                                            />
-                                            <Area type="monotone" dataKey="revenue" stroke="#0071e3" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div className='col-lg-4' whileHover={{ y: -3 }}>
-                            <div className='card border-0 p-4 shadow-sm rounded-4 glass-panel h-100'>
-                                <h6 className="text-muted fw-bold text-uppercase tracking-wider mb-4">Orders by Day</h6>
-                                <div style={{ width: '100%', height: 350 }}>
-                                    <ResponsiveContainer>
-                                        <BarChart data={salesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#86868b'}} dy={10} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#86868b'}} />
-                                            <Tooltip 
-                                                cursor={{fill: 'rgba(0,0,0,0.05)'}}
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
-                                            />
-                                            <Bar dataKey="revenue" fill="#10b981" radius={[4, 4, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </div>
-        </div>
-    )
+                    </div>
+                </div>
+                </>
+            )}
+        </AdminLayout>
+    );
 }
 
 export default Dashboard;

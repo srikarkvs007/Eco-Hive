@@ -35,6 +35,14 @@ const Home = () => {
 
     // Manage whether we are in "Landing" or "Store" mode
     const [showStore, setShowStore] = useState(!!searchQuery || storeParam === 'true');
+
+    useEffect(() => {
+        if (storeParam === 'true' || searchQuery) {
+            setShowStore(true);
+        } else if (!storeParam && !searchQuery) {
+            setShowStore(false);
+        }
+    }, [storeParam, searchQuery]);
     
     // Transition states
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -62,27 +70,26 @@ const Home = () => {
     };
 
     useEffect(() => {
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                let url = `http://localhost:5001/api/products?search=${searchQuery || ''}`;
+                if (sortBy) url += `&sortBy=${sortBy}`;
+                if (ecoFriendlyOnly) url += `&ecoFriendlyOnly=true`;
+                if (inStockOnly) url += `&inStockOnly=true`;
+                if (minPrice) url += `&minPrice=${minPrice}`;
+                if (maxPrice) url += `&maxPrice=${maxPrice}`;
+                
+                const res = await axios.get(url);
+                setProducts(res.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Error fetching products:", err);
+                setLoading(false);
+            }
+        };
         fetchProducts();
     }, [searchQuery, sortBy, ecoFriendlyOnly, inStockOnly, minPrice, maxPrice]);
-
-    const fetchProducts = async () => {
-        setLoading(true);
-        try {
-            let url = `http://localhost:5001/api/products?search=${searchQuery || ''}`;
-            if (sortBy) url += `&sortBy=${sortBy}`;
-            if (ecoFriendlyOnly) url += `&ecoFriendlyOnly=true`;
-            if (inStockOnly) url += `&inStockOnly=true`;
-            if (minPrice) url += `&minPrice=${minPrice}`;
-            if (maxPrice) url += `&maxPrice=${maxPrice}`;
-            
-            const res = await axios.get(url);
-            setProducts(res.data);
-            setLoading(false);
-        } catch (err) {
-            console.error("Error fetching products:", err);
-            setLoading(false);
-        }
-    };
 
     const handleProductDeleted = (deletedId) => {
         setProducts(prevProducts => prevProducts.filter(p => p.id !== deletedId));
@@ -115,7 +122,7 @@ const Home = () => {
                 <div 
                     className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center" 
                     style={{ 
-                        backgroundColor: '#ffffff', 
+                        backgroundColor: 'var(--bg-color)', 
                         zIndex: 9999,
                         opacity: overlayFadingOut ? 0 : 1,
                         transition: 'opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1)'
@@ -131,9 +138,14 @@ const Home = () => {
                     <img 
                         src="/images/logo.jpg" 
                         alt="Eco-Hive" 
-                        style={{ height: '100px', mixBlendMode: 'darken', filter: 'contrast(1.2)', animation: 'pulseLogo 2s infinite ease-in-out' }} 
+                        style={{ 
+                            height: '100px', 
+                            mixBlendMode: localStorage.getItem('theme') === 'dark' ? 'screen' : 'darken', 
+                            filter: localStorage.getItem('theme') === 'dark' ? 'invert(1) contrast(1.2)' : 'contrast(1.2)', 
+                            animation: 'pulseLogo 2s infinite ease-in-out' 
+                        }} 
                     />
-                    <div className="mt-4 fw-medium" style={{ color: '#1d1d1f', letterSpacing: '0.05em', fontSize: '18px', opacity: 0.8 }}>
+                    <div className="mt-4 fw-medium" style={{ color: 'var(--text-primary)', letterSpacing: '0.05em', fontSize: '18px', opacity: 0.8 }}>
                         Preparing your Store Experience...
                     </div>
                 </div>
@@ -180,13 +192,13 @@ const Home = () => {
                             className="position-absolute d-flex flex-column align-items-center text-center p-4 rounded-5 shadow glass-panel" 
                             style={{ top: '15%', zIndex: 2, minWidth: '450px' }}
                         >
-                            <h2 className="fw-bolder mb-2" style={{ fontSize: '72px', letterSpacing: '-0.03em', color: '#1d1d1f' }}>
+                            <h2 className="fw-bolder mb-2 text-dark" style={{ fontSize: '72px', letterSpacing: '-0.03em' }}>
                                 Eco-Hive
                             </h2>
-                            <p className="fw-medium mb-3" style={{ fontSize: '32px', letterSpacing: '-0.01em', color: '#1d1d1f' }}>
+                            <p className="fw-medium mb-3 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.01em' }}>
                                 Thoughtfully Made. Naturally Better.
                             </p>
-                            <p className="fs-5 fw-normal mb-5" style={{ letterSpacing: '0.01em', color: '#555555' }}>
+                            <p className="fs-5 fw-normal mb-5 text-muted" style={{ letterSpacing: '0.01em' }}>
                                 Sustainable materials. Conscious choices.
                             </p>
                             <div className="d-flex gap-3">
@@ -216,15 +228,13 @@ const Home = () => {
                         }}
                     >
                         <div className="hero-image-container position-absolute top-0 start-0 w-100 h-100" style={{ zIndex: 0 }}>
-                            <picture>
-                                <source srcSet="/images/nature_landscape_4k.webp" type="image/webp" />
-                                <img 
-                                    src="/images/nature_landscape_4k.jpg" 
-                                    alt="Live Green Banner" 
-                                    loading="lazy" 
-                                    decoding="async" 
-                                />
-                            </picture>
+                            <img 
+                                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=90&fit=crop" 
+                                alt="Live Green Banner" 
+                                loading="lazy" 
+                                decoding="async" 
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
                             {/* Gradient Overlay for Text Legibility */}
                             <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 45%)', zIndex: 1 }}></div>
                         </div>
@@ -308,9 +318,9 @@ const Home = () => {
 
                     {/* Search Results Header */}
                     {searchQuery ? (
-                        <h2 className="fw-bolder mb-5" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Results for "{searchQuery}"</h2>
+                        <h2 className="fw-bolder mb-5 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Results for "{searchQuery}"</h2>
                     ) : (
-                        <h2 className="fw-bolder mb-5" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Featured Products</h2>
+                        <h2 className="fw-bolder mb-5 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>Featured Products</h2>
                     )}
 
                     {/* Advanced Filtering UI */}

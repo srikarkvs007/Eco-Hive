@@ -1,19 +1,30 @@
-import Navbar from '../components/Navbar';
+import AdminLayout from '../components/AdminLayout';
 import axios from 'axios';
 import {useEffect, useState} from 'react';
 
 function ViewOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [adminHasWarehouse, setAdminHasWarehouse] = useState(true);
 
     useEffect(() => {
-        axios.get('http://localhost:5001/api/orders/all')
+        const adminId = localStorage.getItem('userId');
+        
+        // 1. Fetch Admin profile to verify if address is set
+        axios.get(`http://localhost:5001/api/users/${adminId}`)
+            .then(res => {
+                const hasAddress = !!res.data.address;
+                setAdminHasWarehouse(hasAddress);
+                
+                // 2. Fetch local orders
+                return axios.get(`http://localhost:5001/api/orders/all?adminId=${adminId}`);
+            })
             .then((res) => {
                 setOrders(res.data);
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Failed to fetch orders", err);
+                console.error("Failed to fetch orders or admin info", err);
                 setLoading(false);
             });
     }, []);
@@ -29,8 +40,7 @@ function ViewOrders() {
     };
 
     return (
-        <div className="bg-light min-vh-100 pb-5">
-            <Navbar />
+        <AdminLayout>
             <div className='container py-5' style={{ maxWidth: '1000px' }}>
                 <div className="d-flex justify-content-between align-items-center mb-5">
                     <div>
@@ -49,16 +59,29 @@ function ViewOrders() {
                         <div className="spinner-border text-primary" role="status"></div>
                     </div>
                 ) : orders.length === 0 ? (
-                    <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
-                        <h5 className="text-muted mb-0">No active dispatch orders found.</h5>
+                    <div className="premium-card p-5 text-center">
+                        {!adminHasWarehouse ? (
+                            <div className="py-4">
+                                <span className="fs-1 mb-3 d-block">⚠️</span>
+                                <h4 className="fw-bold mb-3 text-danger">No Warehouse Configured</h4>
+                                <p className="text-muted mb-4 max-w-md mx-auto">
+                                    You must configure your Warehouse / Region Address in settings to view and manage local dispatches.
+                                </p>
+                                <button className="btn btn-dark rounded-pill px-4" onClick={() => window.location.href = '/settings'}>
+                                    Go to Settings
+                                </button>
+                            </div>
+                        ) : (
+                            <h5 className="text-muted mb-0">No active dispatch orders found for your local warehouse region.</h5>
+                        )}
                     </div>
                 ) : (
                     <div className="row g-4">
                         {orders.map((order, index) => (
                             <div key={order.id} className="col-12 col-md-6">
-                                <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden transition-all hover-lift">
+                                <div className="premium-card transition-all hover-lift">
                                     {/* Card Header */}
-                                    <div className={`card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center ${order.status === 'Delivered' ? 'bg-success bg-opacity-10' : 'bg-white'}`}>
+                                    <div className={`card-header border-0 py-3 px-4 d-flex justify-content-between align-items-center ${order.status === 'Delivered' ? 'bg-success bg-opacity-10' : ''}`} style={{ backgroundColor: 'var(--surface-color, #fff)', borderTopLeftRadius: 'var(--radius-xl)', borderTopRightRadius: 'var(--radius-xl)' }}>
                                         <div className="d-flex align-items-center gap-2">
                                             <span className={`badge rounded-pill ${order.deliveryMode.includes('Drone') ? 'bg-success' : 'bg-dark'}`}>
                                                 {order.deliveryMode}
@@ -143,7 +166,7 @@ function ViewOrders() {
                 .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
                 .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
             `}</style>
-        </div>
+        </AdminLayout>
     );
 }
 

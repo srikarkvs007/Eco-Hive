@@ -45,18 +45,19 @@
   /* Ultra-Premium Linear/Vercel Inspired Dark Palette */
   --primary-color: #D4AF7A;
   --primary-hover: #e0bc8a;
-  --secondary-color: #1a1a1a;
+  --secondary-color: #1E1E1E;
   
   /* Deep, ambient blacks (Layered depth system) */
-  --bg-color: #080808;         /* base */
-  --surface-color: #111111;    /* surface */
-  --bg-elevated: #1a1a1a;      /* elevated */
-  --surface-elevated: #222222; /* overlay */
+  --bg-color: #121212;         /* base background: true dark */
+  --surface-color: #1E1E1E;    /* surface: dark gray */
+  --bg-elevated: #1E1E1E;      /* elevated */
+  --surface-elevated: #2A2A2A; /* overlay */
   
-  /* Text (WCAG AA compliant warm off-whites) */
-  --text-primary: #F0EDE8;
-  --text-secondary: #9A9693;
-  --text-tertiary: #5A5755;
+  /* Text (WCAG AA compliant contrast ratio >= 4.5:1) */
+  --text-primary: #E0E0E0;     /* high-contrast text */
+  --text-secondary: #B0B0B0;   /* readable secondary text */
+  --text-tertiary: #888888;
+
   
   /* Accents */
   --accent-color: #D4AF7A;
@@ -169,6 +170,28 @@ p {
   background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
+/* Premium Remove Button */
+.remove-btn-premium {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-speed) var(--easing-spring);
+}
+
+[data-theme="dark"] .remove-btn-premium {
+  background-color: rgba(40, 40, 40, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.remove-btn-premium:hover {
+  background-color: #ff3b30 !important;
+  color: white !important;
+  border-color: #ff3b30 !important;
+  transform: scale(1.1);
+}
+
 /* Inputs & Form Controls */
 .form-control, .form-select {
   border-radius: var(--radius-md) !important;
@@ -195,6 +218,10 @@ p {
 [data-theme="dark"] .form-control:focus, [data-theme="dark"] .form-select:focus {
   border-color: var(--accent-blue) !important;
   box-shadow: 0 0 0 4px rgba(41, 151, 255, 0.2) !important;
+}
+
+[data-theme="dark"] ::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Cards */
@@ -445,8 +472,13 @@ p {
   color: var(--text-secondary) !important;
 }
 
+.logo-img {
+  mix-blend-mode: multiply;
+}
+
 [data-theme="dark"] .navbar-brand img {
   filter: invert(1) contrast(1.2) !important;
+  mix-blend-mode: screen !important;
 }
 
 [data-theme="dark"] .border {
@@ -461,6 +493,20 @@ p {
   background-color: transparent !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
   color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+  background-color: var(--bg-elevated) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: white !important;
 }
 
 /* Skeleton Loader */

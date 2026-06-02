@@ -1,10 +1,11 @@
 import axios from 'axios';
 import {useState} from 'react';
-import {useNavigate,Link} from 'react-router-dom';
+import {useNavigate,Link,useLocation} from 'react-router-dom';
 
 function Login()
 {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
@@ -16,7 +17,7 @@ function Login()
         try
         {
             const res = await axios.post(
-                'http://localhost:5001/api/users/login',
+                'http://localhost:5001/api/v1/auth/login',
                 {
                     email,
                     password
@@ -32,14 +33,22 @@ function Login()
                 localStorage.setItem('role',res.data.user.role);
                 localStorage.setItem('email',res.data.user.email);
                 localStorage.setItem('name',res.data.user.name);
+                localStorage.setItem('ecoPoints', res.data.user.ecoPoints || 0);
+                
+                const themePref = res.data.user.themePreference || 'light';
+                localStorage.setItem('theme', themePref);
+                if (themePref === 'dark') {
+                    document.body.setAttribute('data-theme', 'dark');
+                } else {
+                    document.body.removeAttribute('data-theme');
+                }
 
                 // Short delay so the user sees the smooth transition
                 setTimeout(() => {
-                    if (res.data.user.role === 'Admin') {
-                        navigate('/dashboard');
-                    } else {
-                        navigate('/home');
-                    }
+                    const from = location.state?.from 
+                        ? (location.state.from.pathname + location.state.from.search) 
+                        : (res.data.user.role === 'Admin' ? '/dashboard' : '/home');
+                    navigate(from, { replace: true });
                 }, 500);
             }
             else
@@ -57,7 +66,7 @@ function Login()
     }
 
     return(
-        <div className='d-flex flex-column align-items-center bg-white min-vh-100 pt-5 position-relative'>
+        <div className='d-flex flex-column align-items-center min-vh-100 pt-5 position-relative' style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
             <Link to="/admin-login" className="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-4 rounded-pill fw-medium px-3 shadow-sm" style={{ transition: 'all 0.2s' }}>
                 <span className="me-2">⚙️</span> Logistics Admin
             </Link>
@@ -68,15 +77,15 @@ function Login()
             </div>
 
             {/* Login Card */}
-            <div className='card p-4 rounded-3' style={{ width: '100%', maxWidth: '350px', border: '1px solid #ddd', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                <h3 className='fw-normal mb-3' style={{ fontSize: '28px' }}>Sign in</h3>
+            <div className='glass-panel p-4 rounded-4' style={{ width: '100%', maxWidth: '350px' }}>
+                <h3 className='fw-bold mb-3'>Sign in</h3>
 
                 <div className="mb-3">
                     <label className="form-label fw-bold small mb-1">Email or mobile phone number</label>
                     <input
                         type='email'
-                        className='form-control'
-                        style={{ border: '1px solid #a6a6a6', borderRadius: '3px', padding: '6px 10px' }}
+                        className='form-control bg-light border-0'
+                        style={{ padding: '10px 14px', borderRadius: '8px' }}
                         onChange={(e)=>setEmail(e.target.value)}
                         disabled={isLoading}
                     />
@@ -86,16 +95,16 @@ function Login()
                     <label className="form-label fw-bold small mb-1">Password</label>
                     <input
                         type='password'
-                        className='form-control'
-                        style={{ border: '1px solid #a6a6a6', borderRadius: '3px', padding: '6px 10px' }}
+                        className='form-control bg-light border-0'
+                        style={{ padding: '10px 14px', borderRadius: '8px' }}
                         onChange={(e)=>setPassword(e.target.value)}
                         disabled={isLoading}
                     />
                 </div>
 
                 <button
-                    className='btn w-100 mb-3'
-                    style={{ backgroundColor: '#FFD814', border: '1px solid #FCD200', borderRadius: '8px', boxShadow: '0 2px 5px rgba(213,217,217,.5)', padding: '6px 0', fontSize: '14px', color: '#0F1111' }}
+                    className='btn w-100 mb-3 text-white shadow-sm'
+                    style={{ backgroundColor: 'var(--accent-color, #1D9E75)', borderRadius: '8px', padding: '10px 0', fontSize: '15px', fontWeight: '500' }}
                     onClick={loginUser}
                     disabled={isLoading}
                 >
@@ -120,8 +129,8 @@ function Login()
                 </div>
 
                 <button 
-                    className="btn w-100" 
-                    style={{ backgroundColor: '#fff', border: '1px solid #d5d9d9', borderRadius: '8px', boxShadow: '0 2px 5px rgba(213,217,217,.5)', padding: '6px 0', fontSize: '14px', color: '#0F1111' }}
+                    className='btn w-100 shadow-sm'
+                    style={{ backgroundColor: 'var(--bg-elevated, #f8f9fa)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '10px 0', fontSize: '14px', color: 'var(--text-primary)', fontWeight: '500' }}
                     onClick={() => navigate('/register')}
                 >
                     Create your Eco-Hive account

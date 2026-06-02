@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
+const { verifyToken } = require('../middleware/auth');
 
 // Get user's wishlist
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
         const wishlist = await prisma.wishlistItem.findMany({
@@ -19,7 +20,7 @@ router.get('/:userId', async (req, res) => {
 });
 
 // Add to wishlist
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     try {
         const { userId, productId } = req.body;
         // Check if already exists to prevent unique constraint error
@@ -44,7 +45,7 @@ router.post('/', async (req, res) => {
 });
 
 // Remove from wishlist
-router.delete('/:userId/:productId', async (req, res) => {
+router.delete('/:userId/:productId', verifyToken, async (req, res) => {
     try {
         const { userId, productId } = req.params;
         await prisma.wishlistItem.deleteMany({

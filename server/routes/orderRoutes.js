@@ -3,10 +3,12 @@ const router = express.Router();
 const prisma = require('../prismaClient');
 const { GoogleGenAI } = require('@google/genai');
 const activeDeliveries = require('../trackingStore');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 const ai = new GoogleGenAI({}); // Automatically picks up GEMINI_API_KEY from environment
 
-router.post('/scan', async (req, res) => {
+router.post('/scan', verifyAdmin, async (req, res) => {
     try {
         if (!process.env.GEMINI_API_KEY) {
             return res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' });
@@ -62,7 +64,7 @@ Example response:
     }
 });
 
-router.post('/add', async (req, res) => {
+router.post('/add', verifyAdmin, async (req, res) => {
     try {
         const { pickupLocation, dropLocation, packageType, weight, sensitivity, isPremium, customerOrderId } = req.body;
         
@@ -74,19 +76,13 @@ router.post('/add', async (req, res) => {
         // Smart Routing Algorithm
         if (sensitivity === 'Fragile' || sensitivity === 'Hazardous') {
             deliveryMode = 'Van';
-            if (isPremium) {
-                // Cannot override Hazardous/Fragile with Drone Swarm due to safety constraints
-                // Wait, maybe we allow it for Fragile, but not Hazardous. Let's just say Van.
-            }
         } else if (parsedWeight <= 5) {
             deliveryMode = 'Drone';
             assignedDrones = 1;
         } else {
-            // Weight > 5
             if (isPremium) {
                 deliveryMode = 'Drone Swarm';
                 assignedDrones = Math.ceil(parsedWeight / 5);
-                // First drone is standard, extra drones cost $10 each
                 extraFee = (assignedDrones - 1) * 10;
             } else {
                 deliveryMode = 'Van';
@@ -95,8 +91,8 @@ router.post('/add', async (req, res) => {
 
         const newOrder = await prisma.order.create({
             data: {
-                pickupLocation,
-                dropLocation,
+                pickupLocation: encrypt(pickupLocation),
+                dropLocation: encrypt(dropLocation),
                 packageType,
                 weight: parsedWeight,
                 sensitivity: sensitivity || 'Standard',
@@ -108,36 +104,74 @@ router.post('/add', async (req, res) => {
             }
         });
 
-        // Initialize Live Tracking coordinates at the Dispatch Hub (e.g. Paris center)
+        // Initialize Live Tracking coordinates at the Dispatch Hub
         activeDeliveries.set(newOrder.id, {
             id: newOrder.id,
             mode: deliveryMode,
             isPremium: Boolean(isPremium),
             drones: assignedDrones,
-            lat: 48.8566 + (Math.random() * 0.02 - 0.01), // Slight random offset
+            lat: 48.8566 + (Math.random() * 0.02 - 0.01),
             lng: 2.3522 + (Math.random() * 0.02 - 0.01),
             pickup: pickupLocation,
             drop: dropLocation
         });
 
-        res.json({ message: 'Order Added', order: newOrder });
+        res.json({ 
+            message: 'Order Added', 
+            order: {
+                ...newOrder,
+                pickupLocation: decrypt(newOrder.pickupLocation),
+                dropLocation: decrypt(newOrder.dropLocation)
+            } 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
 
-router.get('/all', async (req, res) => {
+router.get('/all', verifyAdmin, async (req, res) => {
     try {
-        const orders = await prisma.order.findMany();
-        res.json(orders);
+        const admin = req.admin;
+        let orders = await prisma.order.findMany({
+            include: {
+                customerOrder: true
+            }
+        });
+
+        if (admin) {
+            const adminRegion = admin.regionId;
+            if (adminRegion) {
+                orders = orders.filter(o => 
+                    o.customerOrder?.regionId === adminRegion ||
+                    o.customerOrder?.assignedAdminId === admin.id
+                );
+            } else if (admin.address) {
+                const localAddress = admin.address.trim().toLowerCase();
+                orders = orders.filter(o => {
+                    const plainPickup = decrypt(o.pickupLocation).trim().toLowerCase();
+                    return plainPickup.includes(localAddress) || localAddress.includes(plainPickup);
+                });
+            } else {
+                orders = [];
+            }
+        }
+
+        // Decrypt locations
+        const decryptedOrders = orders.map(o => ({
+            ...o,
+            pickupLocation: decrypt(o.pickupLocation),
+            dropLocation: decrypt(o.dropLocation)
+        }));
+
+        res.json(decryptedOrders);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
 
-router.put('/updateStatus/:id', async (req, res) => {
+router.put('/updateStatus/:id', verifyAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -154,10 +188,21 @@ router.put('/updateStatus/:id', async (req, res) => {
                     where: { id: updatedOrder.customerOrderId },
                     data: { status: 'Delivered' }
                 });
-            } else if (status === 'In Transit') {
+            } else if (status === 'In Transit' || status === 'Dispatched') {
                 await prisma.customerOrder.update({
                     where: { id: updatedOrder.customerOrderId },
-                    data: { status: 'Shipped' }
+                    data: { status: 'Dispatched' }
+                });
+            }
+
+            // Emit socket event to notify client in real-time
+            const io = req.app.get('io');
+            if (io) {
+                const mappedStatus = (status === 'In Transit' || status === 'Dispatched') ? 'Dispatched' : status;
+                io.emit('order_status_updated', {
+                    orderId: updatedOrder.customerOrderId,
+                    logisticsOrderId: updatedOrder.id,
+                    status: mappedStatus
                 });
             }
         }
@@ -167,7 +212,14 @@ router.put('/updateStatus/:id', async (req, res) => {
             activeDeliveries.delete(updatedOrder.id);
         }
 
-        res.json({ message: 'Order status updated', order: updatedOrder });
+        res.json({ 
+            message: 'Order status updated', 
+            order: {
+                ...updatedOrder,
+                pickupLocation: decrypt(updatedOrder.pickupLocation),
+                dropLocation: decrypt(updatedOrder.dropLocation)
+            } 
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server Error' });

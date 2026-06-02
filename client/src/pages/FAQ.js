@@ -6,7 +6,7 @@ const FAQ = () => {
     return (
         <div className="bg-light min-vh-100 d-flex flex-column">
             <Navbar />
-            <div className="container py-5 flex-grow-1" style={{ maxWidth: '800px' }}>
+            <div className="container py-5 flex-grow-1" style={{ maxWidth: '800px', paddingTop: '160px' }}>
                 <h2 className="fw-bolder mb-4 text-center">Frequently Asked Questions</h2>
                 <p className="text-center text-muted mb-5">Find answers to the most common questions about Eco-Hive.</p>
                 

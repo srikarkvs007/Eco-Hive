@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -7,8 +7,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from '../config';
 
-const socket = io('http://localhost:5001');
+const socket = io(API_BASE_URL);
 
 const getEmojiIcon = (mode, isPremium) => {
     let emoji = '📦';
@@ -24,8 +25,17 @@ const getEmojiIcon = (mode, isPremium) => {
 };
 
 const OrderSuccess = () => {
-    const { orderId } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    
+    let orderId = searchParams.get('order_id');
+    if (!orderId) {
+        const sessionId = searchParams.get('session_id');
+        if (sessionId && sessionId.startsWith('mock_session_')) {
+            orderId = sessionId.replace('mock_session_', '');
+        }
+    }
+
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [liveLocation, setLiveLocation] = useState(null);
@@ -38,8 +48,19 @@ const OrderSuccess = () => {
                 setLiveLocation(myDelivery);
             }
         });
+
+        socket.on('order_status_updated', (data) => {
+            if (data.orderId === orderId) {
+                setOrder(prev => prev ? { ...prev, status: data.status } : null);
+                if (data.status === 'Delivered') {
+                    setLiveLocation(null);
+                }
+            }
+        });
+
         return () => {
             socket.off('live_locations');
+            socket.off('order_status_updated');
         };
     }, [orderId]);
 
@@ -80,7 +101,7 @@ const OrderSuccess = () => {
     return (
         <div className="bg-light min-vh-100 d-flex flex-column">
             <Navbar />
-            <div className="container flex-grow-1 py-5 d-flex justify-content-center align-items-center">
+            <div className="container flex-grow-1 py-5 d-flex justify-content-center align-items-center" style={{ paddingTop: '160px' }}>
                 <div className="card border-0 shadow-sm rounded-5 overflow-hidden" style={{ maxWidth: '600px', width: '100%' }}>
                     
                     {/* Header Banner */}

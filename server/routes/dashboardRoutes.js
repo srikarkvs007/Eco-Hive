@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
 const activeDeliveries = require('../trackingStore');
+const { verifyAdmin } = require('../middleware/auth');
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', verifyAdmin, async (req, res) => {
     try {
         // Aggregate E-commerce Revenue
         const paidOrders = await prisma.customerOrder.aggregate({
@@ -36,13 +37,25 @@ router.get('/stats', async (req, res) => {
             }
         }
 
+        // Total Products
+        const totalProducts = await prisma.product.count();
+
+        // Orders Today
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const ordersToday = await prisma.customerOrder.count({
+            where: { createdAt: { gte: startOfToday } }
+        });
+
         res.json({
             totalRevenue: paidOrders._sum.totalAmount || 0,
             pendingDeliveries: pendingOrders,
             inTransit: inTransitOrders,
             activeDrones,
             activeVans,
-            lowStockAlerts: lowStockProducts
+            lowStockAlerts: lowStockProducts,
+            totalProducts,
+            ordersToday
         });
     } catch (err) {
         console.error("Error fetching dashboard stats:", err);
@@ -50,7 +63,7 @@ router.get('/stats', async (req, res) => {
     }
 });
 
-router.get('/sales-trend', async (req, res) => {
+router.get('/sales-trend', verifyAdmin, async (req, res) => {
     try {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

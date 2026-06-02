@@ -6,6 +6,22 @@ import { HelmetProvider } from 'react-helmet-async';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import axios from 'axios';
+import { API_BASE_URL } from './config';
+
+// Intercept all API requests pointing to localhost:5001 and rewrite them to the dynamically resolved API_BASE_URL
+axios.interceptors.request.use((config) => {
+  if (config.url && config.url.includes('http://localhost:5001')) {
+    config.url = config.url.replace('http://localhost:5001', API_BASE_URL);
+  }
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

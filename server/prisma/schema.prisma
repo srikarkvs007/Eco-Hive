@@ -9,16 +9,30 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  name           String
-  email          String          @unique
-  password       String
-  role           String          @default("User") // User or Admin
-  cartItems      CartItem[]
-  customerOrders CustomerOrder[]
-  activities     UserActivity[]
-  reviews        Review[]
-  wishlistItems  WishlistItem[]
+  id              String          @id @default(uuid())
+  name            String
+  email           String          @unique
+  password        String
+  profilePicture  String?
+  phone           String?
+  address         String?
+  role            String          @default("User") // User or Admin
+  themePreference String         @default("light")
+  ecoPoints       Int             @default(0)
+  regionId        String?         // Used to map admins to local orders
+  contactInfo     String?         // Email, Phone for OTP
+  createdAt       DateTime        @default(now())
+  cartItems       CartItem[]
+  customerOrders  CustomerOrder[] @relation("CustomerOrders")
+  assignedOrders  CustomerOrder[] @relation("AdminOrders")
+  activities      UserActivity[]
+  reviews         Review[]
+  wishlistItems   WishlistItem[]
+  payments        Payment[]
+  giftCardBalance Float           @default(0.0)
+  redeemedGiftCards GiftCard[]    @relation("RedeemedGiftCards")
+
+  @@index([regionId])
 }
 
 model Order {
@@ -35,6 +49,8 @@ model Order {
   status          String        @default("Pending")
   customerOrderId String?
   customerOrder   CustomerOrder? @relation(fields: [customerOrderId], references: [id])
+
+  @@index([customerOrderId])
 }
 
 model Vehicle {
@@ -58,17 +74,23 @@ model Product {
   specifications String?
   perfectFor     String?
   price          Float
-  stockQuantity Int         @default(0)
-  imageUrl      String?
-  isEcoFriendly Boolean     @default(false)
-  categoryId    String?
-  category      Category?   @relation(fields: [categoryId], references: [id])
-  cartItems     CartItem[]
-  orderItems    OrderItem[]
-  reviews       Review[]
-  wishlistedBy  WishlistItem[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  stockQuantity  Int         @default(0)
+  imageUrl       String?
+  isEcoFriendly  Boolean     @default(false)
+  categoryId     String?
+  category       Category?   @relation(fields: [categoryId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  reviews        Review[]
+  wishlistedBy   WishlistItem[]
+  sku            String?     @unique
+  regionId       String?     // Regional availability
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([regionId])
+  @@index([sku])
 }
 
 model CartItem {
@@ -78,22 +100,34 @@ model CartItem {
   quantity  Int     @default(1)
   user      User    @relation(fields: [userId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
 }
 
 model CustomerOrder {
   id              String      @id @default(uuid())
   userId          String
   totalAmount     Float
-  status          String      @default("Pending") // Pending, Paid, Shipped, Delivered, Cancelled
+  status          String      @default("Pending") // Pending, Paid, Processing, Dispatched, Delivered, Cancelled
   shippingAddress String?
   paymentIntentId String?     // Stripe Payment Intent
   paymentStatus   String      @default("Unpaid") // Unpaid, Paid, Failed
   receiptUrl      String?     // Stripe Receipt URL
-  user            User        @relation(fields: [userId], references: [id])
+  user            User        @relation("CustomerOrders", fields: [userId], references: [id])
+  assignedAdminId String?
+  assignedAdmin   User?       @relation("AdminOrders", fields: [assignedAdminId], references: [id])
+  regionId        String?
   items           OrderItem[]
   logisticsOrders Order[]
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  payment         Payment?
+
+  @@index([userId])
+  @@index([assignedAdminId])
+  @@index([regionId])
+  @@index([status])
 }
 
 model OrderItem {
@@ -104,6 +138,9 @@ model OrderItem {
   priceAtPurchase Float
   order           CustomerOrder @relation(fields: [customerOrderId], references: [id])
   product         Product       @relation(fields: [productId], references: [id])
+
+  @@index([customerOrderId])
+  @@index([productId])
 }
 
 model UserActivity {
@@ -113,6 +150,8 @@ model UserActivity {
   details   String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model Review {
@@ -125,6 +164,9 @@ model Review {
 
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
 }
 
 model WishlistItem {
@@ -137,4 +179,72 @@ model WishlistItem {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }
+
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String
+  customerOrderId String        @unique
+  amount          Float
+  status          String        @default("Pending")
+  paymentIntentId String        @unique
+  receiptUrl      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  user            User          @relation(fields: [userId], references: [id])
+  customerOrder   CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([customerOrderId])
+  @@index([status])
+}
+
+model GiftCard {
+  id             String   @id @default(uuid())
+  code           String   @unique
+  amount         Float
+  balance        Float
+  senderName     String
+  senderEmail    String
+  recipientName  String
+  recipientEmail String
+  message        String?
+  design         String   @default("Classic")
+  status         String   @default("Active") // Active, Redeemed
+  createdAt      DateTime @default(now())
+  redeemedAt     DateTime?
+  redeemedById   String?
+  redeemedBy     User?    @relation("RedeemedGiftCards", fields: [redeemedById], references: [id])
+
+  @@index([redeemedById])
+}
+
+model EntertainmentContent {
+  id          String   @id @default(uuid())
+  title       String
+  type        String   // Show, Documentary, Movie
+  category    String   // Nature, Technology, Climate, etc.
+  description String
+  duration    String
+  rating      String   // e.g. PG-13, G
+  imageUrl    String
+  videoUrl    String   // mock URL or loop
+  isFeatured  Boolean  @default(false)
+  releaseYear Int
+}
+
+model PodcastEpisode {
+  id          String   @id @default(uuid())
+  title       String
+  podcastName String
+  description String
+  duration    String
+  audioUrl    String
+  imageUrl    String
+  publishDate DateTime @default(now())
+  host        String
+}
+

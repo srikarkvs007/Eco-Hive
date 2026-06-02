@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
+import AdminLayout from '../components/AdminLayout';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { io } from 'socket.io-client';
+import { API_BASE_URL } from '../config';
 
-const socket = io('http://localhost:5001');
+const socket = io(API_BASE_URL);
 
 // Custom CSS for emoji markers
 const getEmojiIcon = (mode, isPremium) => {
@@ -39,9 +40,8 @@ function LiveTracking() {
     const center = [48.8566, 2.3522];
 
     return (
-        <div className="bg-light min-vh-100 d-flex flex-column">
-            <Navbar />
-            <div className="container-fluid flex-grow-1 d-flex flex-column p-4">
+        <AdminLayout>
+            <div className="d-flex flex-column h-100 w-100">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h2 className="fw-bold m-0">🛰️ Live Tracking Radar</h2>
                     <span className="badge bg-success p-2 fs-6">
@@ -50,7 +50,7 @@ function LiveTracking() {
                     </span>
                 </div>
                 
-                <div className="card border-0 shadow-lg rounded-4 overflow-hidden flex-grow-1" style={{ minHeight: '600px' }}>
+                <div className="premium-card flex-grow-1" style={{ minHeight: '600px' }}>
                     <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
                         <TileLayer
                             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -76,7 +76,7 @@ function LiveTracking() {
                     </MapContainer>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 }
 
