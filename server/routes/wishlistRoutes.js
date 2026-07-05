@@ -7,6 +7,9 @@ const { verifyToken } = require('../middleware/auth');
 router.get('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only view your own wishlist.' });
+        }
         const wishlist = await prisma.wishlistItem.findMany({
             where: { userId },
             include: { product: true },
@@ -23,6 +26,9 @@ router.get('/:userId', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
     try {
         const { userId, productId } = req.body;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only add to your own wishlist.' });
+        }
         // Check if already exists to prevent unique constraint error
         const existing = await prisma.wishlistItem.findUnique({
             where: {
@@ -48,6 +54,9 @@ router.post('/', verifyToken, async (req, res) => {
 router.delete('/:userId/:productId', verifyToken, async (req, res) => {
     try {
         const { userId, productId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only delete from your own wishlist.' });
+        }
         await prisma.wishlistItem.deleteMany({
             where: { userId, productId }
         });

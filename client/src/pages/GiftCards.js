@@ -52,7 +52,7 @@ const GiftCards = () => {
             return;
         }
         fetchWalletData();
-    }, [userId]);
+    }, [userId, navigate]);
 
     const fetchWalletData = async () => {
         try {

@@ -32,7 +32,7 @@ const Podcasts = () => {
             return;
         }
         fetchPodcasts();
-    }, [userId]);
+    }, [userId, navigate]);
 
     useEffect(() => {
         // Sync HTML5 Audio element parameters
@@ -333,6 +333,7 @@ const Podcasts = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <Footer />
         </div>
     );
 };

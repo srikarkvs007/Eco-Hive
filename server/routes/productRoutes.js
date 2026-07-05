@@ -14,6 +14,37 @@ router.get('/categories', async (req, res) => {
     }
 });
 
+// Get community forest stats
+router.get('/community-forest/stats', async (req, res) => {
+    try {
+        const totalOrders = await prisma.customerOrder.count();
+        const treeRedemptions = await prisma.userActivity.count({
+            where: {
+                action: 'Redeemed Reward',
+                details: {
+                    contains: 'Planted a tree'
+                }
+            }
+        });
+        
+        const baseOffset = 1500; // Premium starting milestone offset
+        const totalPlanted = totalOrders + treeRedemptions + baseOffset;
+        const targetGoal = 5000;
+        
+        res.json({
+            totalPlanted,
+            targetGoal,
+            percentage: Math.min(Math.round((totalPlanted / targetGoal) * 100), 100),
+            ordersPlanted: totalOrders,
+            rewardsPlanted: treeRedemptions
+        });
+    } catch (err) {
+        console.error("Error fetching community forest stats:", err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+
 // Get all products (with optional search and category filters)
 router.get('/', async (req, res) => {
     try {
@@ -74,6 +105,39 @@ router.get('/', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Get all reviews across all products (Admin only)
+// GET /api/products/reviews/all
+router.get('/reviews/all', verifyAdmin, async (req, res) => {
+    try {
+        const reviews = await prisma.review.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: { 
+                user: { select: { name: true, email: true } },
+                product: { select: { title: true } }
+            }
+        });
+        res.json(reviews);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching all reviews' });
+    }
+});
+
+// Delete a review (Admin only)
+// DELETE /api/products/reviews/:id
+router.delete('/reviews/:id', verifyAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.review.delete({
+            where: { id }
+        });
+        res.json({ message: 'Review deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error deleting review' });
     }
 });
 
@@ -206,11 +270,15 @@ router.get('/:id/reviews', async (req, res) => {
 });
 
 // Post a review
-router.post('/:id/reviews', async (req, res) => {
+router.post('/:id/reviews', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { userId, rating, comment } = req.body;
         
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only post reviews on your own behalf.' });
+        }
+
         const review = await prisma.review.create({
             data: {
                 productId: id,

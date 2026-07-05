@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../prismaClient');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 // Helper to generate secure random Gift Card code: ECO-XXXX-XXXX-XXXX
 function generateGiftCardCode() {
@@ -29,6 +29,15 @@ router.post('/purchase', verifyToken, async (req, res) => {
         }
         if (!recipientEmail || !recipientName || !senderName || !senderEmail) {
             return res.status(400).json({ message: 'Missing required recipient or sender details' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.email !== senderEmail && user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Sender email must match your registered email.' });
         }
 
         const code = generateGiftCardCode();
@@ -183,6 +192,23 @@ router.get('/my-activity', verifyToken, async (req, res) => {
     } catch (err) {
         console.error('Error fetching gift card activity:', err);
         res.status(500).json({ message: 'Server error fetching activity logs' });
+    }
+});
+
+// 5. Get all gift cards (Admin only)
+// GET /api/gift-cards/all
+router.get('/all', verifyAdmin, async (req, res) => {
+    try {
+        const cards = await prisma.giftCard.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                redeemedBy: { select: { name: true, email: true } }
+            }
+        });
+        res.json(cards);
+    } catch (err) {
+        console.error('Error fetching all gift cards:', err);
+        res.status(500).json({ message: 'Server error fetching gift cards' });
     }
 });
 

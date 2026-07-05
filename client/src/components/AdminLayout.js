@@ -56,7 +56,8 @@ const AdminLayout = ({ children }) => {
                     width: '240px', 
                     borderRight: 'var(--glass-border)', 
                     zIndex: 1050,
-                    transform: isSidebarOpen ? 'translateX(0)' : ''
+                    transform: isSidebarOpen ? 'translateX(0)' : '',
+                    borderRadius: '0px'
                 }}
             >
                 {/* Logo Area */}
@@ -135,20 +136,6 @@ const AdminLayout = ({ children }) => {
                         </li>
                         <li className="nav-item">
                             <Link 
-                                to="/add-product" 
-                                className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/add-product') ? 'text-white' : 'hover-bg-light'}`}
-                                style={{ 
-                                    backgroundColor: isActive('/add-product') ? 'var(--accent-color, #1D9E75)' : 'transparent',
-                                    color: isActive('/add-product') ? '#fff' : 'var(--text-primary)',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                <i className="bi bi-plus-circle-fill me-3" style={{ opacity: isActive('/add-product') ? 1 : 0.6 }}></i>
-                                Add Product
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link 
                                 to="/settings" 
                                 className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/settings') ? 'text-white' : 'hover-bg-light'}`}
                                 style={{ 
@@ -218,7 +205,67 @@ const AdminLayout = ({ children }) => {
                                 }}
                             >
                                 <i className="bi bi-car-front-fill me-3" style={{ opacity: isActive('/vehicle') ? 1 : 0.6 }}></i>
-                                Add Vehicle
+                                Manage Vehicles
+                            </Link>
+                        </li>
+                    </ul>
+
+                    <div className="text-muted small fw-bold text-uppercase mt-4 mb-2 px-3" style={{ letterSpacing: '0.5px', fontSize: '11px' }}>Content & Promotion</div>
+                    <ul className="nav flex-column gap-1 mb-4">
+                        <li className="nav-item">
+                            <Link 
+                                to="/manage-tv" 
+                                className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/manage-tv') ? 'text-white' : 'hover-bg-light'}`}
+                                style={{ 
+                                    backgroundColor: isActive('/manage-tv') ? 'var(--accent-color, #1D9E75)' : 'transparent',
+                                    color: isActive('/manage-tv') ? '#fff' : 'var(--text-primary)',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                <i className="bi bi-tv me-3" style={{ opacity: isActive('/manage-tv') ? 1 : 0.6 }}></i>
+                                Eco-TV Manager
+                            </Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link 
+                                to="/manage-podcasts" 
+                                className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/manage-podcasts') ? 'text-white' : 'hover-bg-light'}`}
+                                style={{ 
+                                    backgroundColor: isActive('/manage-podcasts') ? 'var(--accent-color, #1D9E75)' : 'transparent',
+                                    color: isActive('/manage-podcasts') ? '#fff' : 'var(--text-primary)',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                <i className="bi bi-mic me-3" style={{ opacity: isActive('/manage-podcasts') ? 1 : 0.6 }}></i>
+                                Podcast Manager
+                            </Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link 
+                                to="/manage-giftcards" 
+                                className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/manage-giftcards') ? 'text-white' : 'hover-bg-light'}`}
+                                style={{ 
+                                    backgroundColor: isActive('/manage-giftcards') ? 'var(--accent-color, #1D9E75)' : 'transparent',
+                                    color: isActive('/manage-giftcards') ? '#fff' : 'var(--text-primary)',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                <i className="bi bi-ticket-perforated me-3" style={{ opacity: isActive('/manage-giftcards') ? 1 : 0.6 }}></i>
+                                Gift Card Admin
+                            </Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link 
+                                to="/manage-reviews" 
+                                className={`nav-link rounded-3 fw-medium d-flex align-items-center px-3 py-2 ${isActive('/manage-reviews') ? 'text-white' : 'hover-bg-light'}`}
+                                style={{ 
+                                    backgroundColor: isActive('/manage-reviews') ? 'var(--accent-color, #1D9E75)' : 'transparent',
+                                    color: isActive('/manage-reviews') ? '#fff' : 'var(--text-primary)',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                <i className="bi bi-chat-left-heart me-3" style={{ opacity: isActive('/manage-reviews') ? 1 : 0.6 }}></i>
+                                Feedback Panel
                             </Link>
                         </li>
                     </ul>

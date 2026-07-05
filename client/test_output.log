@@ -1,0 +1,361 @@
+
+> client@0.1.0 test
+> react-scripts test
+
+  console.error
+    ReferenceError: IntersectionObserver is not defined
+        at initIntersectionObserver (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/observers.ts:54:34)
+        at observeIntersection (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/observers.ts:68:39)
+        at InViewFeature.startObserver (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/index.ts:66:29)
+        at InViewFeature.mount (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/index.ts:74:14)
+        at HTMLVisualElement.updateFeatures (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/motion-dom/src/render/VisualElement.ts:657:29)
+        at /Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/utils/use-visual-element.ts:147:23
+        at Object.react_stack_bottom_frame (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+        at runWithFiberInDEV (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+        at commitHookEffectListMount (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+        at commitHookLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14165:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13954:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        ... collapsed 16 duplicate lines matching above lines ...
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
+        at flushLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
+        at commitRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:17954:9)
+        at performWorkOnRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+        at performWorkOnRootViaSchedulerTask (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+        at flushActQueue (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react/cjs/react.development.js:590:34)
+        at Object.<anonymous>.process.env.NODE_ENV.exports.act (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react/cjs/react.development.js:884:10)
+        at /Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/act-compat.js:46:25
+        at renderRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/pure.js:189:26)
+        at render (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/pure.js:291:10)
+        at Object.<anonymous> (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/App.test.js:5:9)
+        at Promise.then.completed (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/utils.js:391:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/utils.js:316:10)
+        at _callCircusTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:218:40)
+        at _runTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:155:3)
+        at _runTestsForDescribeBlock (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:66:9)
+        at run (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:25:3)
+        at runAndTransformResultsToJestFormat (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:170:21)
+        at jestAdapter (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:82:19)
+        at runTestInternal (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/runTest.js:389:16)
+        at runTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/runTest.js:475:34)
+        at TestRunner.runTests (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/index.js:101:12)
+        at TestScheduler.scheduleTests (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/TestScheduler.js:333:13)
+        at runJest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/runJest.js:404:19)
+        at _run10000 (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/cli/index.js:320:7)
+        at runCLI (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/cli/index.js:173:3)
+        at Object.run (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-cli/build/cli/index.js:155:37) {
+      [stack]: [Getter/Setter],
+      [message]: 'IntersectionObserver is not defined'
+    }
+    
+    The above error occurred in the <ForwardRef(motion.div)> component.
+    
+    React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m test([32m'renders sign in landing view'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 5 |[39m   render([33m<[39m[33mApp[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m   |[39m         [31m[1m^[22m[39m
+     [90m 6 |[39m   [36mconst[39m headingElement [33m=[39m screen[33m.[39mgetByRole([32m'heading'[39m[33m,[39m { name[33m:[39m [32m'Sign in'[39m })[33m;[39m
+     [90m 7 |[39m   expect(headingElement)[33m.[39mtoBeInTheDocument()[33m;[39m
+     [90m 8 |[39m })[33m;[39m[0m
+
+      at defaultOnCaughtError (node_modules/react-dom/cjs/react-dom-client.development.js:9410:17)
+      at logCaughtError (node_modules/react-dom/cjs/react-dom-client.development.js:9446:9)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at ErrorBoundary.inst.componentDidCatch.update.callback (node_modules/react-dom/cjs/react-dom-client.development.js:9493:11)
+      at callCallback (node_modules/react-dom/cjs/react-dom-client.development.js:7423:16)
+      at commitCallbacks (node_modules/react-dom/cjs/react-dom-client.development.js:7443:11)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitClassCallbacks (node_modules/react-dom/cjs/react-dom-client.development.js:13377:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:14026:25)
+      at recursivelyTraverseLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
+      at flushLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
+      at commitRoot (node_modules/react-dom/cjs/react-dom-client.development.js:17954:9)
+      at performWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+      at performSyncWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:18972:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-dom/cjs/react-dom-client.development.js:18814:21)
+      at flushSpawnedWork (node_modules/react-dom/cjs/react-dom-client.development.js:18334:9)
+      at commitRoot (node_modules/react-dom/cjs/react-dom-client.development.js:17955:9)
+      at performWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:46:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:189:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:291:10)
+      at Object.<anonymous> (src/App.test.js:5:9)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  console.error
+    ErrorBoundary caught an error ReferenceError: IntersectionObserver is not defined
+        at initIntersectionObserver (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/observers.ts:54:34)
+        at observeIntersection (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/observers.ts:68:39)
+        at InViewFeature.startObserver (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/index.ts:66:29)
+        at InViewFeature.mount (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/features/viewport/index.ts:74:14)
+        at HTMLVisualElement.updateFeatures (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/motion-dom/src/render/VisualElement.ts:657:29)
+        at /Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/utils/use-visual-element.ts:147:23
+        at Object.react_stack_bottom_frame (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+        at runWithFiberInDEV (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+        at commitHookEffectListMount (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+        at commitHookLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13213:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13951:13)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14165:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14065:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13954:11)
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+        ... collapsed 16 duplicate lines matching above lines ...
+        at recursivelyTraverseLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+        at commitLayoutEffectOnFiber (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
+        at flushLayoutEffects (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
+        at commitRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:17954:9)
+        at performWorkOnRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+        at performWorkOnRootViaSchedulerTask (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+        at flushActQueue (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react/cjs/react.development.js:590:34)
+        at Object.<anonymous>.process.env.NODE_ENV.exports.act (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/react/cjs/react.development.js:884:10)
+        at /Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/act-compat.js:46:25
+        at renderRoot (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/pure.js:189:26)
+        at render (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@testing-library/react/dist/pure.js:291:10)
+        at Object.<anonymous> (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/App.test.js:5:9)
+        at Promise.then.completed (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/utils.js:391:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/utils.js:316:10)
+        at _callCircusTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:218:40)
+        at _runTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:155:3)
+        at _runTestsForDescribeBlock (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:66:9)
+        at run (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/run.js:25:3)
+        at runAndTransformResultsToJestFormat (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:170:21)
+        at jestAdapter (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:82:19)
+        at runTestInternal (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/runTest.js:389:16)
+        at runTest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/runTest.js:475:34)
+        at TestRunner.runTests (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-runner/build/index.js:101:12)
+        at TestScheduler.scheduleTests (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/TestScheduler.js:333:13)
+        at runJest (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/runJest.js:404:19)
+        at _run10000 (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/cli/index.js:320:7)
+        at runCLI (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/@jest/core/build/cli/index.js:173:3)
+        at Object.run (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/jest-cli/build/cli/index.js:155:37) {
+      componentStack: '\n' +
+        '    at MotionDOMComponent (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/index.tsx:101:16)\n' +
+        '    at div (<anonymous>)\n' +
+        '    at div (<anonymous>)\n' +
+        '    at About (<anonymous>)\n' +
+        '    at div (<anonymous>)\n' +
+        '    at MotionDOMComponent (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/motion/index.tsx:101:16)\n' +
+        '    at PageTransition (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/App.js:65:27)\n' +
+        '    at Route (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/setupTests.js:57:15)\n' +
+        '    at div (<anonymous>)\n' +
+        '    at Routes (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/setupTests.js:56:16)\n' +
+        '    at PopChildMeasure (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/components/AnimatePresence/PopChild.tsx:38:1)\n' +
+        '    at PopChild (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/components/AnimatePresence/PopChild.tsx:74:28)\n' +
+        '    at PresenceChild (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/components/AnimatePresence/PresenceChild.tsx:27:5)\n' +
+        '    at AnimatePresence (/Users/srikarkanduri/Downloads/Eco-Hive/client/node_modules/framer-motion/src/components/AnimatePresence/index.tsx:47:5)\n' +
+        '    at AnimatedRoutes (<anonymous>)\n' +
+        '    at div (<anonymous>)\n' +
+        '    at BrowserRouter (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/setupTests.js:55:23)\n' +
+        '    at ErrorBoundary (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/components/ErrorBoundary.js:6:9)\n' +
+        '    at App (/Users/srikarkanduri/Downloads/Eco-Hive/client/src/App.js:129:14)'
+    }
+
+    [0m [90m 13 |[39m
+     [90m 14 |[39m     componentDidCatch(error[33m,[39m errorInfo) {
+    [31m[1m>[22m[39m[90m 15 |[39m         console[33m.[39merror([32m"ErrorBoundary caught an error"[39m[33m,[39m error[33m,[39m errorInfo)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 16 |[39m     }
+     [90m 17 |[39m
+     [90m 18 |[39m     render() {[0m
+
+      at ErrorBoundary.componentDidCatch (src/components/ErrorBoundary.js:15:17)
+      at Object.react_stack_bottom_frame (node_modules/react-dom/cjs/react-dom-client.development.js:25959:20)
+      at ErrorBoundary.inst.componentDidCatch.update.callback (node_modules/react-dom/cjs/react-dom-client.development.js:9504:11)
+      at callCallback (node_modules/react-dom/cjs/react-dom-client.development.js:7423:16)
+      at commitCallbacks (node_modules/react-dom/cjs/react-dom-client.development.js:7443:11)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitClassCallbacks (node_modules/react-dom/cjs/react-dom-client.development.js:13377:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:14026:25)
+      at recursivelyTraverseLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:13949:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15159:11)
+      at commitLayoutEffectOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:14031:11)
+      at flushLayoutEffects (node_modules/react-dom/cjs/react-dom-client.development.js:18138:15)
+      at commitRoot (node_modules/react-dom/cjs/react-dom-client.development.js:17954:9)
+      at performWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+      at performSyncWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:18972:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-dom/cjs/react-dom-client.development.js:18814:21)
+      at flushSpawnedWork (node_modules/react-dom/cjs/react-dom-client.development.js:18334:9)
+      at commitRoot (node_modules/react-dom/cjs/react-dom-client.development.js:17955:9)
+      at performWorkOnRoot (node_modules/react-dom/cjs/react-dom-client.development.js:16667:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-dom/cjs/react-dom-client.development.js:18957:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:46:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:189:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:291:10)
+      at Object.<anonymous> (src/App.test.js:5:9)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+FAIL src/App.test.js
+  ✕ renders sign in landing view (321 ms)
+
+  ● renders sign in landing view
+
+    TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name "Sign in"
+
+    Here are the accessible roles:
+
+      heading:
+
+      Name "Oops, something went wrong.":
+      [36m<h2[39m
+        [33mclass[39m=[32m"fw-bolder mb-3 text-dark"[39m
+      [36m/>[39m
+
+      --------------------------------------------------
+      paragraph:
+
+      Name "":
+      [36m<p[39m
+        [33mclass[39m=[32m"text-muted mb-4"[39m
+      [36m/>[39m
+
+      --------------------------------------------------
+      button:
+
+      Name "Refresh Page":
+      [36m<button[39m
+        [33mclass[39m=[32m"btn btn-primary rounded-pill px-4"[39m
+      [36m/>[39m
+
+      --------------------------------------------------
+      link:
+
+      Name "Go to Home":
+      [36m<a[39m
+        [33mclass[39m=[32m"btn btn-outline-secondary rounded-pill px-4"[39m
+        [33mhref[39m=[32m"/home"[39m
+      [36m/>[39m
+
+      --------------------------------------------------
+
+    Ignored nodes: comments, script, style
+    [36m<body>[39m
+      [36m<div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"d-flex flex-column justify-content-center align-items-center min-vh-100 bg-light text-center p-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"bg-white p-5 rounded-5 shadow-sm"[39m
+            [33mstyle[39m=[32m"max-width: 600px; border: 1px solid rgba(0,0,0,0.05);"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-danger mb-4"[39m
+              [33mstyle[39m=[32m"font-size: 48px;"[39m
+            [36m>[39m
+              [0m⚠️[0m
+            [36m</div>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"fw-bolder mb-3 text-dark"[39m
+            [36m>[39m
+              [0mOops, something went wrong.[0m
+            [36m</h2>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-muted mb-4"[39m
+            [36m>[39m
+              [0mWe've encountered an unexpected error. Please try refreshing the page or navigating back to the home screen.[0m
+            [36m</p>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"d-flex justify-content-center gap-3"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn btn-primary rounded-pill px-4"[39m
+              [36m>[39m
+                [0mRefresh Page[0m
+              [36m</button>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"btn btn-outline-secondary rounded-pill px-4"[39m
+                [33mhref[39m=[32m"/home"[39m
+              [36m>[39m
+                [0mGo to Home[0m
+              [36m</a>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</body>[39m
+
+    [0m [90m 4 |[39m test([32m'renders sign in landing view'[39m[33m,[39m () [33m=>[39m {
+     [90m 5 |[39m   render([33m<[39m[33mApp[39m [33m/[39m[33m>[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 6 |[39m   [36mconst[39m headingElement [33m=[39m screen[33m.[39mgetByRole([32m'heading'[39m[33m,[39m { name[33m:[39m [32m'Sign in'[39m })[33m;[39m
+     [90m   |[39m                                 [31m[1m^[22m[39m
+     [90m 7 |[39m   expect(headingElement)[33m.[39mtoBeInTheDocument()[33m;[39m
+     [90m 8 |[39m })[33m;[39m
+     [90m 9 |[39m[0m
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByRole (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/App.test.js:6:33)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        0.771 s, estimated 2 s
+Ran all test suites.

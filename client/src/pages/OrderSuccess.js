@@ -190,7 +190,7 @@ const OrderSuccess = () => {
                             <Link to="/settings" className="btn btn-outline-dark rounded-pill py-3 px-4 flex-grow-1 fw-bold">
                                 View Order History
                             </Link>
-                            <Link to="/home" className="btn btn-primary rounded-pill py-3 px-4 flex-grow-1 fw-bold shadow-sm">
+                            <Link to="/home?store=true" className="btn btn-primary rounded-pill py-3 px-4 flex-grow-1 fw-bold shadow-sm">
                                 Continue Shopping
                             </Link>
                         </div>

@@ -15,6 +15,10 @@ router.post('/checkout', verifyToken, async (req, res) => {
             return res.status(400).json({ message: 'User ID is required' });
         }
 
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only checkout for yourself.' });
+        }
+
         // Fetch cart items for the user
         const cartItems = await prisma.cartItem.findMany({
             where: { userId },
@@ -199,6 +203,10 @@ router.get('/:id', verifyToken, async (req, res) => {
             }
         });
         if (!order) return res.status(404).json({ message: 'Order not found' });
+
+        if (order.userId !== req.user.id && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only view your own orders.' });
+        }
         
         res.json({
             ...order,
@@ -215,6 +223,9 @@ router.get('/:id', verifyToken, async (req, res) => {
 router.get('/user/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only view your own order history.' });
+        }
         const orders = await prisma.customerOrder.findMany({
             where: { userId },
             include: {

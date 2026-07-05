@@ -85,9 +85,13 @@ router.post('/login', async (req, res) => {
 
 router.put('/:id/theme', verifyToken, async (req, res) => {
     try {
+        const { id } = req.params;
+        if (req.user.id !== id && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only update your own theme preference.' });
+        }
         const { themePreference } = req.body;
         const updatedUser = await prisma.user.update({
-            where: { id: req.params.id },
+            where: { id },
             data: { themePreference }
         });
         res.json({ message: 'Theme updated', themePreference: updatedUser.themePreference });
@@ -119,10 +123,48 @@ router.get('/', verifyAdmin, async (req, res) => {
 // DELETE /api/users/:id (Admin Only)
 router.delete('/:id', verifyAdmin, async (req, res) => {
     try {
-        await prisma.user.delete({
-            where: { id: req.params.id }
+        const { id } = req.params;
+
+        // 1. Delete dependent user activity logs
+        await prisma.userActivity.deleteMany({ where: { userId: id } });
+
+        // 2. Delete wishlist items
+        await prisma.wishlistItem.deleteMany({ where: { userId: id } });
+
+        // 3. Delete cart items
+        await prisma.cartItem.deleteMany({ where: { userId: id } });
+
+        // 4. Delete reviews
+        await prisma.review.deleteMany({ where: { userId: id } });
+
+        // 5. Delete payments
+        await prisma.payment.deleteMany({ where: { userId: id } });
+
+        // 6. Nullify gift cards redeemed by this user to avoid constraint error
+        await prisma.giftCard.updateMany({
+            where: { redeemedById: id },
+            data: { redeemedById: null, status: 'Active', redeemedAt: null }
         });
-        res.json({ message: 'User deleted' });
+
+        // 7. Delete order items and logistics orders linked to customer orders
+        const userOrders = await prisma.customerOrder.findMany({ where: { userId: id } });
+        const orderIds = userOrders.map(o => o.id);
+
+        await prisma.orderItem.deleteMany({
+            where: { customerOrderId: { in: orderIds } }
+        });
+
+        await prisma.order.deleteMany({
+            where: { customerOrderId: { in: orderIds } }
+        });
+
+        await prisma.customerOrder.deleteMany({ where: { userId: id } });
+
+        // 8. Delete user profile
+        await prisma.user.delete({
+            where: { id }
+        });
+        res.json({ message: 'User deleted successfully' });
     } catch (err) {
         console.error("Error deleting user:", err);
         res.status(500).json({ message: 'Failed to delete user' });
@@ -133,6 +175,9 @@ router.delete('/:id', verifyAdmin, async (req, res) => {
 router.get('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only view your own profile.' });
+        }
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { id: true, name: true, email: true, role: true, profilePicture: true, phone: true, address: true, regionId: true, contactInfo: true }
@@ -156,6 +201,9 @@ router.get('/:userId', verifyToken, async (req, res) => {
 router.put('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only update your own profile.' });
+        }
         const { name, phone, address, regionId, contactInfo } = req.body;
         
         const updatedUser = await prisma.user.update({
@@ -189,6 +237,9 @@ router.put('/:userId', verifyToken, async (req, res) => {
 router.post('/:userId/profile-picture', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only update your own profile picture.' });
+        }
         const { profilePicture } = req.body;
         
         const updatedUser = await prisma.user.update({
@@ -208,6 +259,9 @@ router.post('/:userId/profile-picture', verifyToken, async (req, res) => {
 router.get('/activity/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only access your own activities.' });
+        }
         const activities = await prisma.userActivity.findMany({
             where: { userId },
             orderBy: { createdAt: 'desc' },
@@ -226,12 +280,62 @@ router.post('/activity', verifyToken, async (req, res) => {
         const { userId, action, details } = req.body;
         if (!userId || !action) return res.status(400).json({ message: 'Missing fields' });
         
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only log activities for yourself.' });
+        }
+
         const activity = await prisma.userActivity.create({
             data: { userId, action, details }
         });
         res.status(201).json(activity);
     } catch (err) {
         console.error("Error logging activity:", err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// POST /api/users/redeem-points
+router.post('/redeem-points', verifyToken, async (req, res) => {
+    try {
+        const { userId, pointsToDeduct, rewardTitle } = req.body;
+        if (!userId || !pointsToDeduct || !rewardTitle) {
+            return res.status(400).json({ message: 'Missing fields' });
+        }
+
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only redeem points for yourself.' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.ecoPoints < pointsToDeduct) {
+            return res.status(400).json({ message: 'Insufficient Eco-Points balance.' });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { ecoPoints: { decrement: parseInt(pointsToDeduct) } },
+            select: { id: true, ecoPoints: true }
+        });
+
+        // Log the activity
+        await prisma.userActivity.create({
+            data: {
+                userId,
+                action: 'Redeemed Reward',
+                details: `Redeemed ${pointsToDeduct} Eco-Points for: "${rewardTitle}"`
+            }
+        });
+
+        res.json({
+            message: 'Points redeemed successfully!',
+            ecoPoints: updatedUser.ecoPoints
+        });
+    } catch (err) {
+        console.error("Error redeeming points:", err);
         res.status(500).json({ message: 'Server error' });
     }
 });

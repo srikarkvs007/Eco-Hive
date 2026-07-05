@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
 import { useSearchParams } from 'react-router-dom';
+import { getCachedData, setCachedData } from '../utils/apiCache';
 
 // Framer Motion scroll animation variants
 const fadeInUp = {
@@ -43,6 +44,24 @@ const Home = () => {
             setShowStore(false);
         }
     }, [storeParam, searchQuery]);
+
+    // Community Forest stats state & effect
+    const [forestStats, setForestStats] = useState(null);
+
+    useEffect(() => {
+        const fetchForestStats = async () => {
+            try {
+                const res = await axios.get('http://localhost:5001/api/products/community-forest/stats');
+                setForestStats(res.data);
+            } catch (err) {
+                console.error("Failed to fetch community forest stats:", err);
+            }
+        };
+        if (!showStore) {
+            fetchForestStats();
+        }
+    }, [showStore]);
+
     
     // Transition states
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -71,17 +90,25 @@ const Home = () => {
 
     useEffect(() => {
         const fetchProducts = async () => {
+            let url = `http://localhost:5001/api/products?search=${searchQuery || ''}`;
+            if (sortBy) url += `&sortBy=${sortBy}`;
+            if (ecoFriendlyOnly) url += `&ecoFriendlyOnly=true`;
+            if (inStockOnly) url += `&inStockOnly=true`;
+            if (minPrice) url += `&minPrice=${minPrice}`;
+            if (maxPrice) url += `&maxPrice=${maxPrice}`;
+
+            const cached = getCachedData(url);
+            if (cached) {
+                setProducts(cached);
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
-                let url = `http://localhost:5001/api/products?search=${searchQuery || ''}`;
-                if (sortBy) url += `&sortBy=${sortBy}`;
-                if (ecoFriendlyOnly) url += `&ecoFriendlyOnly=true`;
-                if (inStockOnly) url += `&inStockOnly=true`;
-                if (minPrice) url += `&minPrice=${minPrice}`;
-                if (maxPrice) url += `&maxPrice=${maxPrice}`;
-                
                 const res = await axios.get(url);
                 setProducts(res.data);
+                setCachedData(url, res.data);
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching products:", err);
@@ -151,7 +178,7 @@ const Home = () => {
                 </div>
             )}
 
-            <Navbar showSearch={showStore} onStoreClick={handleGoToStore} onLogoClick={() => setShowStore(false)} />
+            <Navbar showSearch={showStore} onStoreClick={handleGoToStore} onLogoClick={() => setShowStore(false)} isHeroPage={!showStore} />
 
 
 
@@ -399,8 +426,110 @@ const Home = () => {
                 </div>
             )}
 
+            {/* Community Forest Goal Section (Visible in Landing Mode) */}
+            {!showStore && (
+                <motion.div 
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-50px" }}
+                    variants={fadeInUp}
+                    className="w-100"
+                    style={{ 
+                        paddingTop: 'var(--spacing-premium)', 
+                        paddingBottom: 'var(--spacing-premium)', 
+                        background: 'linear-gradient(180deg, var(--bg-color) 0%, var(--bg-elevated) 100%)',
+                        borderTop: 'var(--glass-border)'
+                    }}
+                >
+                    <div className="layout-container py-4">
+                        <div 
+                            className="p-5 rounded-5 shadow-sm border position-relative overflow-hidden text-center text-md-start"
+                            style={{ 
+                                backgroundColor: 'var(--bg-elevated)', 
+                                borderColor: 'var(--border-color)',
+                                border: 'var(--glass-border)',
+                                background: 'radial-gradient(circle at 90% 10%, rgba(40, 167, 69, 0.05) 0%, transparent 60%)'
+                            }}
+                        >
+                            <div className="row align-items-center g-4">
+                                <div className="col-12 col-md-7">
+                                    <div className="d-flex align-items-center gap-3 justify-content-center justify-content-md-start mb-3">
+                                        <div 
+                                            className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ 
+                                                width: '50px', 
+                                                height: '50px', 
+                                                backgroundColor: 'rgba(46, 204, 113, 0.15)', 
+                                                color: '#2ecc71'
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M8.416.223a.5.5 0 0 0-.832 0l-3 4.5A.5.5 0 0 0 5 5.5h.098L3.076 8.735A.5.5 0 0 0 3.5 9.5h.191l-1.664 3.328a.5.5 0 0 0 .447.722H13.5a.5.5 0 0 0 .447-.722L12.28 9.5h.191a.5.5 0 0 0 .424-.765L10.902 5.5H11a.5.5 0 0 0 .416-.777l-3-4.5zM7.787 1.567l2.18 3.273h-.967a.5.5 0 0 0-.416.777l2.18 3.273h-.967a.5.5 0 0 0-.416.777l2.18 4.364H3.843l2.18-4.364a.5.5 0 0 0-.416-.777h-.967l2.18-3.273h-.967a.5.5 0 0 0-.416-.777l2.18-3.273z"/>
+                                            </svg>
+                                        </div>
+                                        <span className="text-uppercase fw-bold tracking-wider text-success" style={{ fontSize: '14px', letterSpacing: '2px' }}>
+                                            Community Milestone
+                                        </span>
+                                    </div>
+                                    <h2 className="fw-bolder mb-3 text-dark" style={{ fontSize: '36px', letterSpacing: '-0.02em' }}>
+                                        Eco-Hive Community Forest
+                                    </h2>
+                                    <p className="text-muted fs-6 mb-4 mb-md-0" style={{ maxWidth: '600px', lineHeight: '1.6' }}>
+                                        Every order placed and every points reward redeemed directly funds global reforestation projects. Together as a community, we are planting a greener, healthier future.
+                                    </p>
+                                </div>
+                                <div className="col-12 col-md-5">
+                                    <div className="p-4 rounded-4 bg-white shadow-sm border border-light">
+                                        <div className="d-flex justify-content-between align-items-end mb-2">
+                                            <div>
+                                                <span className="text-muted small fw-medium d-block text-uppercase">Total Trees Planted</span>
+                                                <span className="fs-2 fw-bolder text-dark">
+                                                    {forestStats?.totalPlanted?.toLocaleString() || '1,500'}
+                                                </span>
+                                            </div>
+                                            <div className="text-end">
+                                                <span className="text-muted small fw-medium d-block text-uppercase">Target Goal</span>
+                                                <span className="fs-5 fw-bold text-muted">
+                                                    {forestStats?.targetGoal?.toLocaleString() || '5,000'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div 
+                                            className="progress rounded-pill mb-3" 
+                                            style={{ height: '14px', backgroundColor: '#f1f2f6', overflow: 'hidden' }}
+                                        >
+                                            <div 
+                                                className="progress-bar rounded-pill" 
+                                                role="progressbar" 
+                                                style={{ 
+                                                    width: `${forestStats?.percentage || 30}%`, 
+                                                    background: 'linear-gradient(90deg, #2ecc71 0%, #27ae60 100%)',
+                                                    transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
+                                                }} 
+                                                aria-valuenow={forestStats?.percentage || 30} 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100"
+                                            />
+                                        </div>
+                                        
+                                        <div className="d-flex justify-content-between text-muted small fw-medium">
+                                            <span>{forestStats?.percentage || 30}% Completed</span>
+                                            <span>
+                                                {((forestStats?.targetGoal || 5000) - (forestStats?.totalPlanted || 1500)).toLocaleString()} to go
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
             {/* Learn More Section (Visible in Landing Mode) */}
             {!showStore && (
+
                 <motion.div 
                     initial="hidden"
                     whileInView="visible"

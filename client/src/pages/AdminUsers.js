@@ -79,8 +79,8 @@ function AdminUsers() {
                                             {new Date(user.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-3 py-3 text-end">
-                                            <button 
-                                                className="btn btn-sm btn-outline-danger rounded-pill px-3" 
+                                            <button
+                                                className="btn btn-sm btn-outline-danger rounded-pill px-3"
                                                 onClick={() => handleDeleteUser(user.id)}
                                                 disabled={user.role === 'Admin'} // Cannot delete other admins from here for safety
                                             >

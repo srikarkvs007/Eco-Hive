@@ -23,6 +23,17 @@ axios.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
+// Intercept responses to handle 401 Unauthorized errors (expired token auto-logout)
+axios.interceptors.response.use((response) => {
+  return response;
+}, (error) => {
+  if (error.response && error.response.status === 401) {
+    localStorage.clear();
+    window.location.href = '/';
+  }
+  return Promise.reject(error);
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

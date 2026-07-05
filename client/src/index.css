@@ -39,6 +39,7 @@
   
   --glass-border: 1px solid rgba(0, 0, 0, 0.05);
   --glass-border-hover: 1px solid rgba(0, 0, 0, 0.1);
+  --scroll-progress: 0;
 }
 
 [data-theme="dark"] {
@@ -537,3 +538,153 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* ========================================================
+   SHRINKING NAVBAR (APPLE-INSPIRED TRANSITIONS)
+   ======================================================== */
+
+.fixed-top-wrap {
+  --scroll-progress: 0;
+  padding-top: calc(16px - 10px * var(--scroll-progress)) !important;
+  padding-bottom: calc(16px - 10px * var(--scroll-progress)) !important;
+  will-change: padding;
+}
+
+.glass-nav {
+  max-width: calc(1200px - 440px * var(--scroll-progress)) !important; /* Smoothly reduces from 1200px to 760px */
+  padding-top: calc(0.5rem - 0.35rem * var(--scroll-progress)) !important;
+  padding-bottom: calc(0.5rem - 0.35rem * var(--scroll-progress)) !important;
+  padding-left: calc(1.5rem - 0.7rem * var(--scroll-progress)) !important;
+  padding-right: calc(1.5rem - 0.7rem * var(--scroll-progress)) !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+  will-change: max-width, padding;
+  border-radius: 999px !important;
+}
+
+/* Dynamic Logo Scaling linked to scroll progress */
+.logo-container {
+  height: calc(44px - 8px * var(--scroll-progress)) !important;
+  width: calc(44px - 8px * var(--scroll-progress)) !important;
+  will-change: height, width;
+}
+
+.logo-img {
+  height: calc(32px - 6px * var(--scroll-progress)) !important;
+  width: calc(32px - 6px * var(--scroll-progress)) !important;
+  will-change: height, width;
+}
+
+.nav-collapsible {
+  max-width: calc(500px * (1 - var(--scroll-progress))) !important;
+  opacity: calc(1 - var(--scroll-progress)) !important;
+  transform: scale(calc(1 - 0.15 * var(--scroll-progress))) !important;
+  transform-origin: center left;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden !important;
+  margin-left: calc(1rem * (1 - var(--scroll-progress))) !important;
+  will-change: max-width, opacity, transform;
+}
+
+.brand-collapsible {
+  margin-left: 0 !important;
+  max-width: calc(180px * (1 - var(--scroll-progress))) !important;
+}
+
+.account-text {
+  max-width: calc(150px * (1 - var(--scroll-progress))) !important;
+  opacity: calc(1 - var(--scroll-progress)) !important;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  will-change: max-width, opacity;
+}
+
+/* Premium Profile & Categories Dropdown Menu Positioning & Animations */
+.dropdown-menu {
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
+  margin-top: 8px !important;
+  
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  transform-origin: top right;
+  display: block !important;
+  visibility: hidden;
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s linear 0.25s !important;
+  will-change: transform, opacity;
+  
+  background-color: var(--surface-color) !important;
+  border: var(--glass-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.dropdown-menu.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0s linear 0s !important;
+}
+
+/* Hover Dropdown functionality for Eco-Products (desktop only) */
+@media (min-width: 992px) {
+  .hover-dropdown:hover .dropdown-menu {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    visibility: visible !important;
+    transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0s linear 0s !important;
+  }
+  
+  .hover-dropdown .dropdown-menu {
+    left: 0 !important;
+    right: auto !important;
+    transform-origin: top left;
+  }
+}
+
+/* Spacing and typography adjustments in compact state */
+.navbar-nav {
+  gap: 1rem !important;
+}
+
+.nav-link {
+  font-size: 14px !important;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+  .navbar-nav {
+    gap: 0.75rem !important;
+  }
+}
+
+/* Premium OTP Animations */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-8px); }
+  30%, 60%, 90% { transform: translateX(8px); }
+}
+
+.shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-checkmark {
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+

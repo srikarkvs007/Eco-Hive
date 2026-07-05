@@ -248,3 +248,18 @@ model PodcastEpisode {
   host        String
 }
 
+model Otp {
+  id        String   @id @default(uuid())
+  userId    String
+  email     String
+  hashedOtp String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+
+  @@index([userId])
+  @@index([email])
+}
+
+

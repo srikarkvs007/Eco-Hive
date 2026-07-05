@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { getCachedData, setCachedData } from '../utils/apiCache';
 
 const EcoProductsCategory = () => {
     const { categoryName } = useParams();
@@ -12,11 +13,20 @@ const EcoProductsCategory = () => {
 
     useEffect(() => {
         const fetchCategoryProducts = async () => {
+            const url = `http://localhost:5001/api/products?categoryName=${encodeURIComponent(categoryName)}`;
+            const cached = getCachedData(url);
+            if (cached) {
+                setProducts(cached);
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
                 // Fetch products specifically for this category name
-                const res = await axios.get(`http://localhost:5001/api/products?categoryName=${encodeURIComponent(categoryName)}`);
+                const res = await axios.get(url);
                 setProducts(res.data);
+                setCachedData(url, res.data);
             } catch (err) {
                 console.error("Error fetching category products:", err);
             } finally {
@@ -59,7 +69,7 @@ const EcoProductsCategory = () => {
                     <h4 className="fw-bold mb-0 text-dark">Showing all {products.length} products</h4>
                     
                     {/* Optional Breadcrumb or Filter dropdown could go here */}
-                    <Link to="/home" className="text-decoration-none text-muted small fw-medium hover-primary">
+                    <Link to="/home?store=true" className="text-decoration-none text-muted small fw-medium hover-primary">
                         &larr; Back to all products
                     </Link>
                 </div>
@@ -74,7 +84,7 @@ const EcoProductsCategory = () => {
                         <div className="fs-1 mb-3">🌱</div>
                         <h4 className="fw-bold text-dark">No products found in this category.</h4>
                         <p className="text-muted">We are actively sourcing new sustainable options. Check back soon!</p>
-                        <Link to="/home" className="btn btn-primary rounded-pill px-4 mt-3">
+                        <Link to="/home?store=true" className="btn btn-primary rounded-pill px-4 mt-3">
                             View All Products
                         </Link>
                     </div>

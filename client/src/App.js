@@ -1,7 +1,8 @@
-import {BrowserRouter,Routes,Route,Navigate,useLocation} from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Toaster } from 'react-hot-toast';
-
+import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -17,6 +18,7 @@ import ProductDetail from './pages/ProductDetail';
 import Legal from './pages/Legal';
 import LegalPage from './pages/LegalPage';
 import Checkout from './pages/Checkout';
+import PaymentGateway from './pages/PaymentGateway';
 import AdminCustomerOrders from './pages/AdminCustomerOrders';
 import ManageProducts from './pages/ManageProducts';
 import AdminUsers from './pages/AdminUsers';
@@ -32,8 +34,14 @@ import TodayAtEcoHive from './pages/TodayAtEcoHive';
 import Settings from './pages/Settings';
 import OrderSuccess from './pages/OrderSuccess';
 import GiftCards from './pages/GiftCards';
-import EcoOne from './pages/EcoOne';
+import EcoTV from './pages/EcoTV';
+import Watch from './pages/Watch';
+import AdminManageEcoTV from './pages/AdminManageEcoTV';
+import AdminManagePodcasts from './pages/AdminManagePodcasts';
+import AdminManageGiftCards from './pages/AdminManageGiftCards';
+import AdminManageReviews from './pages/AdminManageReviews';
 import Podcasts from './pages/Podcasts';
+import About from './pages/About';
 import Chatbot from './components/Chatbot';
 import ScrollToTop from './components/ScrollToTop';
 import CursorAura from './components/CursorAura';
@@ -92,7 +100,9 @@ const AnimatedRoutes = () => {
                 <Route path='/genius-bar' element={<PageTransition><GeniusBar/></PageTransition>}/>
                 <Route path='/recycling' element={<PageTransition><RecyclingProgramme/></PageTransition>}/>
                 <Route path='/today' element={<PageTransition><TodayAtEcoHive/></PageTransition>}/>
-                <Route path='/eco-one' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><EcoOne/></PageTransition></ProtectedRoute>}/>
+                <Route path='/about' element={<PageTransition><About/></PageTransition>}/>
+                <Route path='/eco-tv' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><EcoTV/></PageTransition></ProtectedRoute>}/>
+                <Route path='/watch/:id' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><Watch/></PageTransition></ProtectedRoute>}/>
                 <Route path='/podcasts' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><Podcasts/></PageTransition></ProtectedRoute>}/>
                 <Route path='/gift-cards' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><GiftCards/></PageTransition></ProtectedRoute>}/>
 
@@ -103,6 +113,7 @@ const AnimatedRoutes = () => {
                 <Route path='/cart' element={<ProtectedRoute allowedRole="User"><PageTransition><Cart/></PageTransition></ProtectedRoute>}/>
                 <Route path='/saves' element={<ProtectedRoute allowedRole="User"><PageTransition><WishlistPage/></PageTransition></ProtectedRoute>}/>
                 <Route path='/checkout' element={<ProtectedRoute allowedRole="User"><PageTransition><Checkout/></PageTransition></ProtectedRoute>}/>
+                <Route path='/gateway' element={<ProtectedRoute allowedRole="User"><PageTransition><PaymentGateway/></PageTransition></ProtectedRoute>}/>
                 <Route path='/order-success' element={<ProtectedRoute allowedRole="User"><PageTransition><OrderSuccess/></PageTransition></ProtectedRoute>}/>
                 <Route path='/settings' element={<ProtectedRoute allowedRoles={['User', 'Admin']}><PageTransition><Settings/></PageTransition></ProtectedRoute>}/>
 
@@ -116,6 +127,10 @@ const AnimatedRoutes = () => {
                 <Route path='/orders' element={<ProtectedRoute allowedRole="Admin"><PageTransition><ViewOrders/></PageTransition></ProtectedRoute>}/>
                 <Route path='/vehicle' element={<ProtectedRoute allowedRole="Admin"><PageTransition><AddVehicle/></PageTransition></ProtectedRoute>}/>
                 <Route path='/livetracking' element={<ProtectedRoute allowedRole="Admin"><PageTransition><LiveTracking/></PageTransition></ProtectedRoute>}/>
+                <Route path='/manage-tv' element={<ProtectedRoute allowedRole="Admin"><PageTransition><AdminManageEcoTV/></PageTransition></ProtectedRoute>}/>
+                <Route path='/manage-podcasts' element={<ProtectedRoute allowedRole="Admin"><PageTransition><AdminManagePodcasts/></PageTransition></ProtectedRoute>}/>
+                <Route path='/manage-giftcards' element={<ProtectedRoute allowedRole="Admin"><PageTransition><AdminManageGiftCards/></PageTransition></ProtectedRoute>}/>
+                <Route path='/manage-reviews' element={<ProtectedRoute allowedRole="Admin"><PageTransition><AdminManageReviews/></PageTransition></ProtectedRoute>}/>
             </Routes>
         </AnimatePresence>
     );
@@ -123,6 +138,47 @@ const AnimatedRoutes = () => {
 
 function App()
 {
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Intercept Ctrl+D on Windows/Linux/Mac or Cmd+D on Mac
+            const isCtrlD = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd';
+            if (isCtrlD) {
+                e.preventDefault();
+                
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                if (newTheme === 'dark') {
+                    document.body.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.body.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                }
+                
+                // Sync with backend if logged in
+                const userId = localStorage.getItem('userId');
+                if (userId) {
+                    axios.put(`http://localhost:5001/api/users/${userId}/theme`, { themePreference: newTheme })
+                        .catch(err => console.error("Failed to sync theme preference", err));
+                }
+                
+                // Dispatch event to sync other loaded components
+                window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: newTheme } }));
+                
+                toast.success(`Switched to ${newTheme} mode!`, {
+                    id: 'theme-toggle-shortcut-toast',
+                    duration: 1500
+                });
+            }
+        };
+        
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
     return(
         <ErrorBoundary>
             <BrowserRouter>

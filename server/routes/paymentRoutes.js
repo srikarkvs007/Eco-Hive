@@ -141,7 +141,7 @@ router.post('/create-checkout-session', verifyToken, async (req, res) => {
                 currency: 'usd',
                 product_data: {
                     name: item.product.title,
-                    images: item.product.imageUrl ? [item.product.imageUrl] : [],
+                    images: (item.product.imageUrl && (item.product.imageUrl.startsWith('http://') || item.product.imageUrl.startsWith('https://'))) ? [item.product.imageUrl] : [],
                 },
                 unit_amount: Math.round(item.product.price * 100), // Stripe expects cents
             },
@@ -199,7 +199,7 @@ router.post('/create-checkout-session', verifyToken, async (req, res) => {
                 line_items: lineItems,
                 mode: 'payment',
                 success_url: `http://localhost:3000/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
-                cancel_url: `http://localhost:3000/checkout?canceled=true`,
+                cancel_url: `http://localhost:3000/gateway?canceled=true`,
                 metadata: {
                     orderId: order.id,
                     userId: userId

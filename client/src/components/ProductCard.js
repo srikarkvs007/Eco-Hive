@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
@@ -12,7 +12,6 @@ const ProductCard = ({ product, onDelete }) => {
         const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
         return wishlist.includes(product.id);
     });
-    const navigate = useNavigate();
     
     // Placeholder image if none provided
     const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x300?text=Eco-Hive+Product';
@@ -32,13 +31,21 @@ const ProductCard = ({ product, onDelete }) => {
                 productId: product.id,
                 quantity: parseInt(quantity)
             });
+
+            // Prefetch updated cart in background to keep navbar synced and speed up cart load
+            axios.get(`http://localhost:5001/api/cart/${userId}`)
+                .then(res => {
+                    localStorage.setItem('cart_cache', JSON.stringify(res.data));
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: res.data }));
+                })
+                .catch(err => console.error("Error updating cart cache in background:", err));
+
             setIsAdding(false);
             setIsAdded(true);
             toast.success('Added to cart!');
             setTimeout(() => {
                 setIsAdded(false);
-                navigate('/cart');
-            }, 500); // Small delay to show animation before redirecting
+            }, 2000);
         } catch (err) {
             console.error('Error adding to cart:', err);
             toast.error('Failed to add to cart.');

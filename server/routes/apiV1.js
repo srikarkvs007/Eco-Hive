@@ -146,6 +146,10 @@ router.post('/auth/otp/send', verifyToken, async (req, res) => {
         const { userId } = req.body;
         if (!userId) return res.status(400).json({ error: 'User ID is required' });
 
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Access denied. You can only request OTP verification for yourself.' });
+        }
+
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -205,6 +209,10 @@ router.post('/auth/otp/verify', verifyToken, async (req, res) => {
         const { userId, code } = req.body;
         if (!userId || !code) return res.status(400).json({ error: 'Missing userId or code' });
 
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Access denied. You can only verify OTP for yourself.' });
+        }
+
         const record = otpStore.get(userId);
         if (!record) {
             return res.status(400).json({ success: false, message: 'No OTP code generated. Please request a new one.' });
@@ -257,6 +265,10 @@ router.get('/users/profile', verifyToken, async (req, res) => {
 router.post('/orders/checkout', verifyToken, async (req, res) => {
     try {
         const { userId, items, totalAmount, shippingAddress, useGiftCardBalance } = req.body;
+
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Access denied. You can only checkout for yourself.' });
+        }
 
         // Fetch customer region to assign matching Admin
         const customer = await prisma.user.findUnique({
@@ -358,7 +370,7 @@ router.post('/orders/checkout', verifyToken, async (req, res) => {
                 currency: 'usd',
                 product_data: {
                     name: item.product.title,
-                    images: item.product.imageUrl ? [item.product.imageUrl] : [],
+                    images: (item.product.imageUrl && (item.product.imageUrl.startsWith('http://') || item.product.imageUrl.startsWith('https://'))) ? [item.product.imageUrl] : [],
                 },
                 unit_amount: Math.round(item.product.price * discountFactor * 100),
             },
@@ -418,7 +430,7 @@ router.post('/orders/checkout', verifyToken, async (req, res) => {
                 line_items: lineItems,
                 mode: 'payment',
                 success_url: `http://localhost:3000/order-success?session_id={CHECKOUT_SESSION_ID}&order_id=${order.id}`,
-                cancel_url: `http://localhost:3000/checkout?canceled=true`,
+                cancel_url: `http://localhost:3000/gateway?canceled=true`,
                 metadata: {
                     orderId: order.id,
                     userId: userId

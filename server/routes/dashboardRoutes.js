@@ -9,7 +9,7 @@ router.get('/stats', verifyAdmin, async (req, res) => {
         // Aggregate E-commerce Revenue
         const paidOrders = await prisma.customerOrder.aggregate({
             _sum: { totalAmount: true },
-            where: { status: { in: ['Paid', 'Shipped', 'Delivered'] } }
+            where: { status: { in: ['Paid', 'Processing', 'Dispatched', 'Delivered'] } }
         });
         
         // Active Logistics Routes
@@ -47,6 +47,12 @@ router.get('/stats', verifyAdmin, async (req, res) => {
             where: { createdAt: { gte: startOfToday } }
         });
 
+        // Expanded KPIs
+        const totalVehicles = await prisma.vehicle.count();
+        const totalUsers = await prisma.user.count({ where: { role: 'User' } });
+        const totalReviews = await prisma.review.count();
+        const activeGiftCards = await prisma.giftCard.count({ where: { status: 'Active' } });
+
         res.json({
             totalRevenue: paidOrders._sum.totalAmount || 0,
             pendingDeliveries: pendingOrders,
@@ -55,7 +61,11 @@ router.get('/stats', verifyAdmin, async (req, res) => {
             activeVans,
             lowStockAlerts: lowStockProducts,
             totalProducts,
-            ordersToday
+            ordersToday,
+            totalVehicles,
+            totalUsers,
+            totalReviews,
+            activeGiftCards
         });
     } catch (err) {
         console.error("Error fetching dashboard stats:", err);

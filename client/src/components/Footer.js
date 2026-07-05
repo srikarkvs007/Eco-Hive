@@ -63,7 +63,7 @@ const Footer = () => {
                         </ul>
                         <div className="fw-semibold text-dark mb-1">Entertainment</div>
                         <ul className="list-unstyled mb-0">
-                            <li><Link to="/eco-one" className="text-decoration-none" style={{ color: '#6e6e73' }}>Eco One</Link></li>
+                            <li><Link to="/eco-tv" className="text-decoration-none" style={{ color: '#6e6e73' }}>Eco-TV</Link></li>
                             <li><Link to="/podcasts" className="text-decoration-none" style={{ color: '#6e6e73' }}>Podcasts</Link></li>
                         </ul>
                     </div>

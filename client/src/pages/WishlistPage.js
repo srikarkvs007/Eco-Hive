@@ -78,6 +78,15 @@ const WishlistPage = () => {
                 productId: product.id,
                 quantity: 1
             });
+            
+            // Prefetch updated cart in background to keep navbar synced and speed up cart load
+            axios.get(`http://localhost:5001/api/cart/${userId}`)
+                .then(res => {
+                    localStorage.setItem('cart_cache', JSON.stringify(res.data));
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: res.data }));
+                })
+                .catch(err => console.error("Error updating cart cache in background:", err));
+
             toast.success(`${product.title} added to your Cart!`);
         } catch (err) {
             console.error(err);
@@ -96,6 +105,12 @@ const WishlistPage = () => {
                     quantity: 1
                 });
             }
+            
+            // Prefetch and sync
+            const res = await axios.get(`http://localhost:5001/api/cart/${userId}`);
+            localStorage.setItem('cart_cache', JSON.stringify(res.data));
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: res.data }));
+
             toast.success("All items added to your Cart!");
             navigate('/cart');
         } catch (err) {

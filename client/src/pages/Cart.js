@@ -10,6 +10,16 @@ const Cart = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Load instantly from localStorage cache if available
+        const cached = localStorage.getItem('cart_cache');
+        if (cached) {
+            try {
+                setCartItems(JSON.parse(cached));
+                setLoading(false);
+            } catch (e) {
+                console.error("Failed to parse cached cart", e);
+            }
+        }
         fetchCart();
     }, []);
 
@@ -23,6 +33,8 @@ const Cart = () => {
         try {
             const res = await axios.get(`http://localhost:5001/api/cart/${userId}`);
             setCartItems(res.data);
+            localStorage.setItem('cart_cache', JSON.stringify(res.data));
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: res.data }));
             setLoading(false);
         } catch (err) {
             console.error("Error fetching cart:", err);
@@ -43,7 +55,10 @@ const Cart = () => {
 
         try {
             await axios.put(`http://localhost:5001/api/cart/${id}`, { quantity: newQuantity });
-            setCartItems(cartItems.map(item => item.id === id ? { ...item, quantity: newQuantity } : item));
+            const updatedItems = cartItems.map(item => item.id === id ? { ...item, quantity: newQuantity } : item);
+            setCartItems(updatedItems);
+            localStorage.setItem('cart_cache', JSON.stringify(updatedItems));
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: updatedItems }));
         } catch (err) {
             console.error('Error updating quantity:', err);
             toast.error(err.response?.data?.message || 'Failed to update quantity');
@@ -53,7 +68,10 @@ const Cart = () => {
     const handleRemove = async (cartItemId) => {
         try {
             await axios.delete(`http://localhost:5001/api/cart/${cartItemId}`);
-            setCartItems(prev => prev.filter(item => item.id !== cartItemId));
+            const updatedItems = cartItems.filter(item => item.id !== cartItemId);
+            setCartItems(updatedItems);
+            localStorage.setItem('cart_cache', JSON.stringify(updatedItems));
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: updatedItems }));
             toast.success('Item removed.');
         } catch (err) {
             console.error("Error removing item:", err);
@@ -89,12 +107,16 @@ const Cart = () => {
                     <div className="text-center py-5">
                         <div className="spinner-border text-primary" role="status"></div>
                     </div>
-                ) : cartItems.length === 0 ? (
+                                ) : cartItems.length === 0 ? (
                     <div className="card border-0 shadow-sm rounded-5 p-5 text-center mt-4" style={{ backgroundColor: 'var(--surface-color)', border: 'var(--glass-border)' }}>
-                        <div className="mb-4 text-muted" style={{ fontSize: '80px' }}>🛍️</div>
-                        <h3 className="fw-bolder text-dark mb-3" style={{ fontSize: '32px' }}>Your bag is empty.</h3>
-                        <p className="text-muted mb-5">Looks like you haven't added anything to your cart yet.</p>
-                        <Link to="/home" className="btn btn-primary rounded-pill px-5 py-3 fw-medium">Continue Shopping</Link>
+                        <div className="d-flex justify-content-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1" className="text-muted" style={{ opacity: 0.35 }}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <h3 className="fw-bolder text-dark mb-3" style={{ fontSize: '28px', letterSpacing: '-0.02em' }}>Your bag is empty</h3>
+                        <p className="text-muted mb-5" style={{ fontSize: '16px' }}>Looks like you haven't added anything to your cart yet.</p>
+                        <Link to="/home?store=true" className="btn btn-dark rounded-pill px-5 py-3 fw-medium">Continue Shopping</Link>
                     </div>
                 ) : (
                     <div className="row g-5">
@@ -105,18 +127,18 @@ const Cart = () => {
                                     <div key={item.id} className="d-flex align-items-center p-4 rounded-5 shadow-sm" style={{ backgroundColor: 'var(--surface-color)', border: 'var(--glass-border)' }}>
                                         <Link to={`/product/${item.product.id}`} className="d-flex align-items-center text-decoration-none text-dark flex-grow-1">
                                             <div style={{ width: '100px', height: '100px', backgroundColor: 'var(--bg-elevated)' }} className="rounded-4 flex-shrink-0 d-flex justify-content-center align-items-center me-4 p-2">
-                                                <img 
-                                                    src={item.product.imageUrl || 'https://via.placeholder.com/100'} 
-                                                    alt={item.product.title} 
+                                                <img
+                                                    src={item.product.imageUrl || 'https://via.placeholder.com/100'}
+                                                    alt={item.product.title}
                                                     style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                                                 />
                                             </div>
                                             <div>
                                                 <h5 className="fw-bolder mb-1" style={{ fontSize: '20px', letterSpacing: '-0.01em' }}>{item.product.title}</h5>
                                                 <div className="d-flex align-items-center mt-2">
-                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{width: '28px', height: '28px'}} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, -1, item.product.stockQuantity); }}>-</button>
+                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{ width: '28px', height: '28px' }} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, -1, item.product.stockQuantity); }}>-</button>
                                                     <span className="mx-3 fw-medium">{item.quantity}</span>
-                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{width: '28px', height: '28px'}} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, 1, item.product.stockQuantity); }}>+</button>
+                                                    <button className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style={{ width: '28px', height: '28px' }} onClick={(e) => { e.preventDefault(); handleUpdateQuantity(item.id, item.quantity, 1, item.product.stockQuantity); }}>+</button>
                                                 </div>
                                             </div>
                                         </Link>
@@ -133,7 +155,7 @@ const Cart = () => {
 
                         {/* Order Summary */}
                         <div className="col-lg-5">
-                            <div className="premium-card sticky-top" style={{top: '120px'}}>
+                            <div className="premium-card sticky-top" style={{ top: '120px' }}>
                                 <div className="card-body p-5">
                                     <h4 className="fw-bolder mb-5 text-dark" style={{ fontSize: '28px' }}>Order Summary</h4>
                                     <div className="d-flex justify-content-between mb-4">
@@ -157,7 +179,7 @@ const Cart = () => {
                                         <Link to="/checkout" className="btn btn-primary w-100 py-3 rounded-pill fw-medium text-white">
                                             Proceed to Checkout
                                         </Link>
-                                        <Link to="/home" className="btn btn-outline-secondary w-100 py-3 rounded-pill fw-medium">
+                                        <Link to="/home?store=true" className="btn btn-outline-secondary w-100 py-3 rounded-pill fw-medium">
                                             Continue Shopping
                                         </Link>
                                     </div>

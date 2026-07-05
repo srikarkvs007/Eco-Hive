@@ -147,11 +147,16 @@ router.get('/all', verifyAdmin, async (req, res) => {
                     o.customerOrder?.assignedAdminId === admin.id
                 );
             } else if (admin.address) {
-                const localAddress = admin.address.trim().toLowerCase();
-                orders = orders.filter(o => {
-                    const plainPickup = decrypt(o.pickupLocation).trim().toLowerCase();
-                    return plainPickup.includes(localAddress) || localAddress.includes(plainPickup);
-                });
+                const plainAdminAddress = decrypt(admin.address);
+                if (plainAdminAddress) {
+                    const localAddress = plainAdminAddress.trim().toLowerCase();
+                    orders = orders.filter(o => {
+                        const plainPickup = decrypt(o.pickupLocation).trim().toLowerCase();
+                        return plainPickup.includes(localAddress) || localAddress.includes(plainPickup);
+                    });
+                } else {
+                    orders = [];
+                }
             } else {
                 orders = [];
             }

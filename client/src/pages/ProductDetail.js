@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
+import { getCachedData, setCachedData } from '../utils/apiCache';
 
 const ProductDetail = () => {
     const { id } = useParams();
@@ -12,10 +13,10 @@ const ProductDetail = () => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
-    const role = localStorage.getItem('role');
     const [isAdding, setIsAdding] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
+    const [selectedSwatch, setSelectedSwatch] = useState('Eco Green');
     
     // Badge Hover State
     const [hoveredBadge, setHoveredBadge] = useState(null);
@@ -28,16 +29,39 @@ const ProductDetail = () => {
     
     useEffect(() => {
         const fetchProduct = async () => {
+            const productUrl = `http://localhost:5001/api/products/${id}`;
+            const productsListUrl = 'http://localhost:5001/api/products';
+            
+            let cachedProduct = getCachedData(productUrl);
+            let cachedList = getCachedData(productsListUrl);
+
+            if (cachedProduct && cachedList) {
+                setProduct(cachedProduct);
+                setReviews(cachedProduct.reviews || []);
+                const others = cachedList.filter(p => p.id !== id);
+                const shuffled = others.sort(() => 0.5 - Math.random());
+                setRecommendations(shuffled.slice(0, 3));
+                setLoading(false);
+                return;
+            }
+
             try {
-                const res = await axios.get(`http://localhost:5001/api/products/${id}`);
-                setProduct(res.data);
-                setReviews(res.data.reviews || []);
-                
-                // Fetch recommendations
-                const allProductsRes = await axios.get('http://localhost:5001/api/products');
-                const allProducts = allProductsRes.data;
-                const others = allProducts.filter(p => p.id !== id);
-                // Shuffle and pick 3
+                let resolvedProduct = cachedProduct;
+                if (!resolvedProduct) {
+                    const res = await axios.get(productUrl);
+                    resolvedProduct = res.data;
+                    setCachedData(productUrl, resolvedProduct);
+                }
+                setProduct(resolvedProduct);
+                setReviews(resolvedProduct.reviews || []);
+
+                let resolvedList = cachedList;
+                if (!resolvedList) {
+                    const allProductsRes = await axios.get(productsListUrl);
+                    resolvedList = allProductsRes.data;
+                    setCachedData(productsListUrl, resolvedList);
+                }
+                const others = resolvedList.filter(p => p.id !== id);
                 const shuffled = others.sort(() => 0.5 - Math.random());
                 setRecommendations(shuffled.slice(0, 3));
                 
@@ -65,6 +89,15 @@ const ProductDetail = () => {
                 productId: product.id,
                 quantity: parseInt(quantity)
             });
+
+            // Prefetch updated cart in background to keep navbar synced and speed up cart load
+            axios.get(`http://localhost:5001/api/cart/${userId}`)
+                .then(res => {
+                    localStorage.setItem('cart_cache', JSON.stringify(res.data));
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: res.data }));
+                })
+                .catch(err => console.error("Error updating cart cache in background:", err));
+
             setIsAdding(false);
             setIsAdded(true);
             toast.success('Added to cart!');
@@ -80,12 +113,7 @@ const ProductDetail = () => {
     };
 
     const handleAddToCart = async () => {
-        const success = await addToCart();
-        if (success) {
-            setTimeout(() => {
-                navigate('/cart');
-            }, 500);
-        }
+        await addToCart();
     };
 
     const handleBuyNow = async () => {
@@ -225,9 +253,52 @@ const ProductDetail = () => {
                         <h1 className="fw-bolder mb-2 text-dark" style={{ fontSize: '56px', letterSpacing: '-0.03em', lineHeight: '1.1' }}>
                             {product.title}
                         </h1>
-                        <p className="fw-medium mb-5 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.01em' }}>
+                        <p className="fw-medium mb-4 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.01em' }}>
                             ${product.price.toFixed(2)}
                         </p>
+
+                        {/* Feature 3: Product Detail Style Swatch Selector */}
+                        <div className="mb-4">
+                            <h5 className="fw-bold mb-2 text-dark" style={{ fontSize: '15px', textTransform: 'uppercase', letterSpacing: '1px' }}>Select Style</h5>
+                            <div className="d-flex gap-3 align-items-center mb-3">
+                                {[
+                                    { name: 'Eco Green', color: '#2ecc71' },
+                                    { name: 'Earth Sand', color: '#d35400' },
+                                    { name: 'Ocean Blue', color: '#2980b9' }
+                                ].map((swatch) => (
+                                    <button
+                                        key={swatch.name}
+                                        onClick={() => setSelectedSwatch(swatch.name)}
+                                        className="btn p-1 rounded-circle d-flex align-items-center justify-content-center"
+                                        style={{
+                                            width: '38px',
+                                            height: '38px',
+                                            border: selectedSwatch === swatch.name ? `3px solid ${swatch.color}` : '2px solid transparent',
+                                            backgroundColor: 'transparent',
+                                            transition: 'all 0.2s ease-in-out',
+                                            transform: selectedSwatch === swatch.name ? 'scale(1.15)' : 'scale(1)'
+                                        }}
+                                        title={swatch.name}
+                                    >
+                                        <span
+                                            style={{
+                                                width: '24px',
+                                                height: '24px',
+                                                backgroundColor: swatch.color,
+                                                borderRadius: '50%',
+                                                display: 'block'
+                                            }}
+                                        />
+                                    </button>
+                                ))}
+                                <span className="ms-2 fw-semibold text-muted small">{selectedSwatch}</span>
+                            </div>
+                            <div className="small text-muted p-3 rounded-4 animate-fade-in" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)', transition: 'all 0.3s' }}>
+                                {selectedSwatch === 'Eco Green' && '🌿 Eco Green: Crafted using 100% organically certified bamboo fibers and zero non-biodegradable components.'}
+                                {selectedSwatch === 'Earth Sand' && '🏜️ Earth Sand: Sustainable and natural sun-baked clay finishes utilizing mineral pigments.'}
+                                {selectedSwatch === 'Ocean Blue' && '🌊 Ocean Blue: Premium circular style created from 100% recycled ocean-bound polymers.'}
+                            </div>
+                        </div>
 
                         {product.description && (
                             <div className="mb-4">
@@ -258,72 +329,188 @@ const ProductDetail = () => {
                             </p>
                         </div>
 
-                        {role !== 'Admin' && (
-                            <>
-                                <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
-                                    <span className="fw-bolder me-4 text-dark text-uppercase small" style={{ letterSpacing: '1px' }}>Quantity</span>
-                                    <div className="d-flex align-items-center border rounded-pill px-2 py-1" style={{ borderColor: '#e1e1e1', backgroundColor: 'transparent' }}>
-                                        <button 
-                                            className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
-                                            style={{ width: '32px', height: '32px' }} 
-                                            onClick={() => setQuantity(Math.max(1, Number(quantity) - 1))}
-                                        >
-                                            <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>−</span>
-                                        </button>
-                                        <input 
-                                            type="number" 
-                                            className="form-control border-0 text-center bg-transparent shadow-none text-dark px-1" 
-                                            value={quantity} 
-                                            min="1" 
-                                            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                            style={{ fontWeight: '600', width: '50px', fontSize: '16px', MozAppearance: 'textfield' }}
-                                        />
-                                        <button 
-                                            className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
-                                            style={{ width: '32px', height: '32px' }} 
-                                            onClick={() => setQuantity(Number(quantity) + 1)}
-                                        >
-                                            <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>+</span>
-                                        </button>
-                                    </div>
-                                    <span className="ms-auto text-muted fw-medium small">
-                                        {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
-                                    </span>
-                                </div>
+                        <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                            <span className="fw-bolder me-4 text-dark text-uppercase small" style={{ letterSpacing: '1px' }}>Quantity</span>
+                            <div className="d-flex align-items-center border rounded-pill px-2 py-1" style={{ borderColor: '#e1e1e1', backgroundColor: 'transparent' }}>
+                                <button 
+                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
+                                    style={{ width: '32px', height: '32px' }} 
+                                    onClick={() => setQuantity(Math.max(1, Number(quantity) - 1))}
+                                >
+                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>−</span>
+                                </button>
+                                <input 
+                                    type="number" 
+                                    className="form-control border-0 text-center bg-transparent shadow-none text-dark px-1" 
+                                    value={quantity} 
+                                    min="1" 
+                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                    style={{ fontWeight: '600', width: '50px', fontSize: '16px', MozAppearance: 'textfield' }}
+                                />
+                                <button 
+                                    className="btn p-0 d-flex justify-content-center align-items-center text-dark bg-light rounded-circle" 
+                                    style={{ width: '32px', height: '32px' }} 
+                                    onClick={() => setQuantity(Number(quantity) + 1)}
+                                >
+                                    <span style={{ fontSize: '20px', lineHeight: '1', marginTop: '-2px' }}>+</span>
+                                </button>
+                            </div>
+                            <span className="ms-auto text-muted fw-medium small">
+                                {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+                            </span>
+                        </div>
 
-                                <div className="d-flex gap-3 mt-4">
-                                    <button 
-                                        onClick={handleAddToCart} 
-                                        className={`btn rounded-pill fw-medium px-4 py-3 flex-grow-1 ${isAdded ? 'btn-success text-white' : 'btn-outline-secondary'}`}
-                                        disabled={product.stockQuantity <= 0 || isAdding}
-                                    >
-                                        {isAdding ? (
-                                            <><span className="spinner-border spinner-border-sm me-2"></span> Adding...</>
-                                        ) : isAdded ? (
-                                            'Added ✓'
-                                        ) : product.stockQuantity <= 0 ? (
-                                            'Out of Stock'
-                                        ) : (
-                                            'Add to Cart'
-                                        )}
-                                    </button>
-                                    <button 
-                                        onClick={handleBuyNow} 
-                                        className="btn btn-primary rounded-pill fw-medium px-4 py-3 flex-grow-1" 
-                                        disabled={product.stockQuantity <= 0}
-                                    >
-                                        Buy Now
-                                    </button>
-                                </div>
-                                {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
-                                    <div className="mt-3 text-center text-danger fw-bold fs-5">
-                                        🔥 Hurry! Only {product.stockQuantity} left in stock.
-                                    </div>
+                        <div className="d-flex gap-3 mt-4">
+                            <button 
+                                onClick={handleAddToCart} 
+                                className={`btn rounded-pill fw-medium px-4 py-3 flex-grow-1 ${isAdded ? 'btn-success text-white' : 'btn-outline-secondary'}`}
+                                disabled={product.stockQuantity <= 0 || isAdding}
+                            >
+                                {isAdding ? (
+                                    <><span className="spinner-border spinner-border-sm me-2"></span> Adding...</>
+                                ) : isAdded ? (
+                                    'Added ✓'
+                                ) : product.stockQuantity <= 0 ? (
+                                    'Out of Stock'
+                                ) : (
+                                    'Add to Cart'
                                 )}
-                            </>
+                            </button>
+                            <button 
+                                onClick={handleBuyNow} 
+                                className="btn btn-primary rounded-pill fw-medium px-4 py-3 flex-grow-1" 
+                                disabled={product.stockQuantity <= 0}
+                            >
+                                Buy Now
+                            </button>
+                        </div>
+                        {product.stockQuantity > 0 && product.stockQuantity <= 5 && (
+                            <div className="mt-3 text-center text-danger fw-bold fs-5">
+                                🔥 Hurry! Only {product.stockQuantity} left in stock.
+                            </div>
                         )}
                     </div>
                 </div>
+
+                {/* Luxury Sustainability Certificate Section */}
+                <div className="row mt-5 pt-4">
+                    <div className="col-12">
+                        <div 
+                            className="card border-0 rounded-5 p-5 position-relative overflow-hidden shadow-sm"
+                            style={{ 
+                                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 247, 246, 0.9) 100%)',
+                                border: '1px solid rgba(46, 204, 113, 0.2)',
+                                backdropFilter: 'blur(10px)'
+                            }}
+                        >
+                            {/* Royal Emblem Watermark */}
+                            <div 
+                                className="position-absolute"
+                                style={{ 
+                                    right: '5%', 
+                                    bottom: '5%', 
+                                    opacity: 0.05, 
+                                    color: '#2ecc71',
+                                    transform: 'scale(2.5)' 
+                                }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0 1A5 5 0 1 0 8 3a5 5 0 0 0 0 10z"/>
+                                    <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                </svg>
+                            </div>
+
+                            <div className="row align-items-center g-4">
+                                <div className="col-lg-8">
+                                    <div className="d-flex align-items-center gap-3 mb-3">
+                                        <div 
+                                            className="d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ 
+                                                width: '44px', 
+                                                height: '44px', 
+                                                backgroundColor: 'rgba(46, 204, 113, 0.12)', 
+                                                color: '#2ecc71'
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z" transform="rotate(180 8 8)"/>
+                                            </svg>
+                                        </div>
+                                        <span className="text-uppercase fw-bold tracking-wider text-success" style={{ fontSize: '13px', letterSpacing: '2px' }}>
+                                            Official Ecological Guarantee
+                                        </span>
+                                    </div>
+                                    <h3 className="fw-bolder mb-3 text-dark" style={{ fontSize: '32px', letterSpacing: '-0.02em' }}>
+                                        Eco-Hive Sustainability Certificate
+                                    </h3>
+                                    <p className="text-muted fs-6 mb-4" style={{ maxWidth: '700px', lineHeight: '1.6' }}>
+                                        This certified product meets elite eco-standards. By choosing this item, you actively avoid single-use plastics and support verified climate mitigation efforts.
+                                    </p>
+                                    
+                                    <div className="row g-3">
+                                        <div className="col-12 col-sm-6">
+                                            <div className="d-flex gap-3">
+                                                <span className="fs-4">☁️</span>
+                                                <div>
+                                                    <h6 className="fw-bold text-dark mb-1">Carbon Neutral Manufacture</h6>
+                                                    <p className="text-muted small mb-0">Production emissions are fully audited and neutralized via certified green investments.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-6">
+                                            <div className="d-flex gap-3">
+                                                <span className="fs-4">🌿</span>
+                                                <div>
+                                                    <h6 className="fw-bold text-dark mb-1">100% Organic & Biodegradable</h6>
+                                                    <p className="text-muted small mb-0">Composed of ethically harvested materials that decompose back into raw soil.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-6">
+                                            <div className="d-flex gap-3">
+                                                <span className="fs-4">📦</span>
+                                                <div>
+                                                    <h6 className="fw-bold text-dark mb-1">Zero-Plastic Delivery</h6>
+                                                    <p className="text-muted small mb-0">Shipped exclusively in recycled cardboard using plant-based starch fillers.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-6">
+                                            <div className="d-flex gap-3">
+                                                <span className="fs-4">♾️</span>
+                                                <div>
+                                                    <h6 className="fw-bold text-dark mb-1">Lifetime Recyclable</h6>
+                                                    <p className="text-muted small mb-0">Designed under closed-loop circular economy principles for easy recycle processing.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="col-lg-4 text-center text-lg-end">
+                                    <div 
+                                        className="d-inline-block p-4 rounded-4 bg-white shadow-sm text-center"
+                                        style={{ border: '1px solid rgba(46, 204, 113, 0.1)', minWidth: '240px' }}
+                                    >
+                                        <span className="text-uppercase fw-bold text-muted small d-block mb-1" style={{ letterSpacing: '1px' }}>
+                                            Ecological Rating
+                                        </span>
+                                        <span className="display-4 fw-bolder text-success d-block mb-2">
+                                            A+
+                                        </span>
+                                        <div className="d-flex justify-content-center gap-1 text-success mb-2">
+                                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                                        </div>
+                                        <span className="text-muted small d-block">
+                                            Certified Climate Grade
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* 5-Star Rating & Reviews Section */}
                 <div className="row mt-5 pt-5">
                     <div className="col-12">

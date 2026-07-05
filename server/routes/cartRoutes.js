@@ -7,6 +7,9 @@ const { verifyToken } = require('../middleware/auth');
 router.get('/:userId', verifyToken, async (req, res) => {
     try {
         const { userId } = req.params;
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only access your own cart.' });
+        }
         const cartItems = await prisma.cartItem.findMany({
             where: { userId },
             include: { product: true }
@@ -23,6 +26,10 @@ router.post('/', verifyToken, async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
         const requestedQuantity = quantity || 1;
+
+        if (req.user.id !== userId && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only modify your own cart.' });
+        }
 
         // Verify product exists and check stock
         const product = await prisma.product.findUnique({
@@ -75,6 +82,18 @@ router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         
+        const item = await prisma.cartItem.findUnique({
+            where: { id }
+        });
+
+        if (!item) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
+
+        if (item.userId !== req.user.id && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only delete your own cart items.' });
+        }
+
         await prisma.cartItem.delete({
             where: { id }
         });
@@ -104,6 +123,10 @@ router.put('/:id', verifyToken, async (req, res) => {
 
         if (!item) {
             return res.status(404).json({ message: 'Cart item not found' });
+        }
+
+        if (item.userId !== req.user.id && req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Access denied. You can only modify your own cart items.' });
         }
 
         if (item.product.stockQuantity < quantity) {

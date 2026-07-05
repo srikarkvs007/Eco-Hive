@@ -13,11 +13,15 @@ const Settings = () => {
     const navigate = useNavigate();
     const location = useLocation();
     
+    // Logout states
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    
     // Parse initial tab from search params
     const [activeTab, setActiveTab] = useState(() => {
         const queryParams = new URLSearchParams(location.search);
         const tabParam = queryParams.get('tab');
-        const allowedTabs = ['profile', 'orders', 'wishlist', 'appearance', 'greenbookings', 'wallet'];
+        const allowedTabs = ['profile', 'orders', 'wishlist', 'appearance', 'greenbookings', 'wallet', 'rewards'];
         return allowedTabs.includes(tabParam) ? tabParam : 'profile';
     });
 
@@ -25,7 +29,7 @@ const Settings = () => {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const tabParam = queryParams.get('tab');
-        const allowedTabs = ['profile', 'orders', 'wishlist', 'appearance', 'greenbookings', 'wallet'];
+        const allowedTabs = ['profile', 'orders', 'wishlist', 'appearance', 'greenbookings', 'wallet', 'rewards'];
         if (tabParam && allowedTabs.includes(tabParam)) {
             setActiveTab(tabParam);
         }
@@ -78,6 +82,17 @@ const Settings = () => {
     const userId = localStorage.getItem('userId');
     const role = localStorage.getItem('role');
 
+    // Sync isDarkMode state with global keyboard shortcut toggle
+    useEffect(() => {
+        const handleThemeChange = (e) => {
+            setIsDarkMode(e.detail.theme === 'dark');
+        };
+        window.addEventListener('themeChanged', handleThemeChange);
+        return () => {
+            window.removeEventListener('themeChanged', handleThemeChange);
+        };
+    }, []);
+
     useEffect(() => {
         if (!userId) {
             navigate('/');
@@ -101,7 +116,8 @@ const Settings = () => {
                     phone: userRes.data.phone || '',
                     address: userRes.data.address || '',
                     regionId: userRes.data.regionId || '',
-                    contactInfo: userRes.data.contactInfo || ''
+                    contactInfo: userRes.data.contactInfo || '',
+                    ecoPoints: userRes.data.ecoPoints || 0
                 });
                 setEditProfileForm({
                     name: userRes.data.name || name,
@@ -180,6 +196,30 @@ const Settings = () => {
                 .catch(err => console.error("Failed to sync theme preference", err));
         }
     }, [isDarkMode, userId]);
+ 
+    const confirmLogout = async () => {
+        setIsLoggingOut(true);
+        if (userId) {
+            try {
+                await axios.post('http://localhost:5001/api/users/activity', {
+                    userId,
+                    action: 'Logged Out',
+                    details: 'User signed out of their account from Settings page'
+                });
+            } catch (err) {
+                console.error("Failed to log logout activity", err);
+            }
+        }
+        
+        // Realistic loading delay before clearing session
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        localStorage.clear();
+        document.body.removeAttribute('data-theme'); // Revert to default light theme on logout
+        setShowLogoutModal(false);
+        setIsLoggingOut(false);
+        navigate('/', { replace: true });
+    };
 
     const handleRedeemSubmit = async (e) => {
         e.preventDefault();
@@ -224,6 +264,36 @@ const Settings = () => {
             toast.error("Failed to update profile.");
         } finally {
             setIsSavingProfile(false);
+        }
+    };
+
+    const [redeemPointsLoading, setRedeemPointsLoading] = useState(false);
+
+    const handleRedeemPoints = async (pointsToDeduct, rewardTitle) => {
+        if (!user || (user.ecoPoints || 0) < pointsToDeduct) {
+            toast.error("You do not have enough Eco-Points.");
+            return;
+        }
+
+        setRedeemPointsLoading(true);
+        try {
+            const res = await axios.post('http://localhost:5001/api/users/redeem-points', {
+                userId,
+                pointsToDeduct,
+                rewardTitle
+            });
+            toast.success(`Successfully redeemed points for: ${rewardTitle}!`);
+            
+            setUser(prev => ({
+                ...prev,
+                ecoPoints: res.data.ecoPoints
+            }));
+            localStorage.setItem('ecoPoints', res.data.ecoPoints);
+        } catch (err) {
+            console.error("Redeem points error:", err);
+            toast.error(err.response?.data?.message || "Failed to redeem points.");
+        } finally {
+            setRedeemPointsLoading(false);
         }
     };
 
@@ -364,6 +434,14 @@ const Settings = () => {
                                                 📅 Green Bookings & Labels
                                             </button>
                                         </li>
+                                        <li className="nav-item">
+                                            <button 
+                                                className={`nav-link text-start w-100 rounded-pill fw-medium px-4 py-3 transition-all ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
+                                                onClick={() => setActiveTab('rewards')}
+                                            >
+                                                🌿 Green Impact & Rewards
+                                            </button>
+                                        </li>
                                     </>
                                 )}
                                 <li className="nav-item">
@@ -372,6 +450,15 @@ const Settings = () => {
                                         onClick={() => setActiveTab('appearance')}
                                     >
                                         ✨ Appearance
+                                    </button>
+                                </li>
+                                <li className="nav-item mt-4">
+                                    <button 
+                                        className="nav-link text-start w-100 rounded-pill fw-medium px-4 py-3 text-danger hover-bg-light"
+                                        onClick={() => setShowLogoutModal(true)}
+                                        style={{ border: '1px solid rgba(255, 59, 48, 0.2)' }}
+                                    >
+                                        ➔ Log out
                                     </button>
                                 </li>
                             </ul>
@@ -681,6 +768,125 @@ const Settings = () => {
                                 </div>
                             )}
 
+                            {/* Green Impact & Rewards Tab */}
+                            {activeTab === 'rewards' && (
+                                <div className="animate-fade-in">
+                                    <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
+                                        <h3 className="fw-bolder text-dark mb-0" style={{ letterSpacing: '-0.02em', fontSize: '32px' }}>Green Impact & Rewards</h3>
+                                        <div className="d-flex align-items-center bg-success bg-opacity-10 text-success rounded-pill px-4 py-2 fw-bold border border-success border-opacity-25" style={{ fontSize: '15px' }}>
+                                            🌿 {user?.ecoPoints || 0} Eco-Points
+                                        </div>
+                                    </div>
+
+                                    {/* Sustainability Scorecard */}
+                                    <div className="row g-4 mb-5">
+                                        <div className="col-12 col-md-3">
+                                            <div className="card border-0 rounded-4 p-4 text-center h-100 shadow-sm" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                                <div className="fs-1 mb-2">🏆</div>
+                                                <h6 className="text-muted small text-uppercase tracking-wider fw-bold mb-1">Impact Level</h6>
+                                                <h4 className="fw-bolder text-dark mb-0">
+                                                    {orders.length >= 30 ? 'Platinum' : orders.length >= 15 ? 'Gold' : orders.length >= 5 ? 'Silver' : 'Bronze'}
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-md-3">
+                                            <div className="card border-0 rounded-4 p-4 text-center h-100 shadow-sm" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                                <div className="fs-1 mb-2">☁️</div>
+                                                <h6 className="text-muted small text-uppercase tracking-wider fw-bold mb-1">CO2 Offsetted</h6>
+                                                <h4 className="fw-bolder text-dark mb-0">{(orders.length * 2.5).toFixed(1)} kg</h4>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-md-3">
+                                            <div className="card border-0 rounded-4 p-4 text-center h-100 shadow-sm" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                                <div className="fs-1 mb-2">♻️</div>
+                                                <h6 className="text-muted small text-uppercase tracking-wider fw-bold mb-1">Plastic Avoided</h6>
+                                                <h4 className="fw-bolder text-dark mb-0">{orders.length * 12} items</h4>
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-md-3">
+                                            <div className="card border-0 rounded-4 p-4 text-center h-100 shadow-sm" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                                <div className="fs-1 mb-2">🌲</div>
+                                                <h6 className="text-muted small text-uppercase tracking-wider fw-bold mb-1">Trees Funded</h6>
+                                                <h4 className="fw-bolder text-dark mb-0">{Math.floor(orders.length * 0.5)} Trees</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Personal Impact details */}
+                                    <div className="card border-0 shadow-sm rounded-5 mb-5 p-4" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                        <h5 className="fw-bold mb-3 text-dark">Your Environmental Footprint</h5>
+                                        <p className="text-muted mb-0 small" style={{ lineHeight: '1.6' }}>
+                                            Every purchase from Eco-Hive is carbon-neutral and packed plastic-free. Based on your shopping history, you have offsetted critical carbon emissions and funded reforestation projects globally. Thank you for contributing to a cleaner future!
+                                        </p>
+                                    </div>
+
+                                    {/* Rewards Redemption Portal */}
+                                    <h4 className="fw-bolder mb-4 text-dark" style={{ fontSize: '24px', letterSpacing: '-0.01em' }}>Redeem Green Rewards</h4>
+                                    <div className="row g-4">
+                                        {/* Reward 1 */}
+                                        <div className="col-12 col-md-4">
+                                            <div className="card border shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between text-center bg-white">
+                                                <div>
+                                                    <div className="fs-2 mb-3">🌲</div>
+                                                    <h5 className="fw-bold text-dark mb-2">Plant a Tree</h5>
+                                                    <p className="text-muted small mb-4">We will fund planting one tree in our collaborative global restoration sites on your behalf.</p>
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bolder text-success mb-3">50 Eco-Points</div>
+                                                    <button 
+                                                        className="btn btn-dark w-100 rounded-pill py-2" 
+                                                        onClick={() => handleRedeemPoints(50, "Planted a tree")}
+                                                        disabled={redeemPointsLoading || (user?.ecoPoints || 0) < 50}
+                                                    >
+                                                        Redeem
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Reward 2 */}
+                                        <div className="col-12 col-md-4">
+                                            <div className="card border shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between text-center bg-white">
+                                                <div>
+                                                    <div className="fs-2 mb-3">🌿</div>
+                                                    <h5 className="fw-bold text-dark mb-2">$10 Green Coupon</h5>
+                                                    <p className="text-muted small mb-4">Generate a unique $10 discount code to apply on your next checkout session.</p>
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bolder text-success mb-3">150 Eco-Points</div>
+                                                    <button 
+                                                        className="btn btn-dark w-100 rounded-pill py-2" 
+                                                        onClick={() => handleRedeemPoints(150, "$10 Green Discount Coupon Code")}
+                                                        disabled={redeemPointsLoading || (user?.ecoPoints || 0) < 150}
+                                                    >
+                                                        Redeem
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Reward 3 */}
+                                        <div className="col-12 col-md-4">
+                                            <div className="card border shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between text-center bg-white">
+                                                <div>
+                                                    <div className="fs-2 mb-3">🌍</div>
+                                                    <h5 className="fw-bold text-dark mb-2">Carbon Certificate</h5>
+                                                    <p className="text-muted small mb-4">Receive a certified digital certificate documenting 1 Ton of CO2 emissions offset.</p>
+                                                </div>
+                                                <div>
+                                                    <div className="fw-bolder text-success mb-3">500 Eco-Points</div>
+                                                    <button 
+                                                        className="btn btn-dark w-100 rounded-pill py-2" 
+                                                        onClick={() => handleRedeemPoints(500, "1-Ton Carbon Offset Certificate")}
+                                                        disabled={redeemPointsLoading || (user?.ecoPoints || 0) < 500}
+                                                    >
+                                                        Redeem
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Appearance Tab */}
                             {activeTab === 'appearance' && (
                                 <div className="animate-fade-in">
@@ -717,6 +923,17 @@ const Settings = () => {
                                         >
                                             <div className="mb-3" style={{ fontSize: '48px' }}>🌙</div>
                                             <h5 className="fw-bolder text-white mb-0">Dark Theme</h5>
+                                        </div>
+                                    </div>
+
+                                    {/* Feature 4: Theme Keyboard Shortcut Helper Banner */}
+                                    <div className="card border-0 rounded-4 mt-5 p-4 text-center transition-all animate-fade-in" style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}>
+                                        <div className="d-flex align-items-center justify-content-center gap-3">
+                                            <span style={{ fontSize: '24px' }}>💡</span>
+                                            <div className="text-start">
+                                                <h6 className="fw-bolder mb-1 text-dark" style={{ fontSize: '15px' }}>Instant Theme Shortcut</h6>
+                                                <p className="text-muted mb-0 small">Press <kbd style={{ background: 'var(--surface-color)', color: 'var(--text-color)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px' }}>Ctrl + D</kbd> (or <kbd style={{ background: 'var(--surface-color)', color: 'var(--text-color)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px' }}>⌘ + D</kbd> on macOS) to toggle Dark/Light mode instantly from any page.</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -930,6 +1147,39 @@ const Settings = () => {
                 </div>
             </div>
             <Footer />
+            {/* Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div 
+                    style={{ 
+                        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+                        backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', 
+                        zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                    }}
+                >
+                    <div className="bg-white shadow-lg overflow-hidden" style={{ width: '90%', maxWidth: '360px', borderRadius: '20px', border: '1px solid rgba(0,0,0,0.08)' }}>
+                        <div className="pt-4 pb-0 px-4 text-center">
+                            <h5 className="fw-bold text-dark mb-2" style={{ letterSpacing: '-0.02em' }}>Logout</h5>
+                        </div>
+                        <div className="text-muted px-4 pt-2 pb-4 text-center" style={{ fontSize: '15px', lineHeight: '1.5' }}>
+                            {isLoggingOut ? (
+                                <div className="py-2">
+                                    <div className="spinner-border spinner-border-sm text-dark mb-3" role="status"></div>
+                                    <h6 className="fw-medium text-dark">Logging out...</h6>
+                                </div>
+                            ) : (
+                                "Are you sure you want to logout?"
+                            )}
+                        </div>
+                        {!isLoggingOut && (
+                            <div className="px-4 pb-4 d-flex justify-content-center gap-2">
+                                <button type="button" className="btn btn-light rounded-pill px-4 fw-medium flex-grow-1" style={{ border: '1px solid rgba(0,0,0,0.1)', fontSize: '15px' }} onClick={() => setShowLogoutModal(false)}>Cancel</button>
+                                <button type="button" className="btn btn-dark rounded-pill px-4 fw-medium flex-grow-1" style={{ fontSize: '15px' }} onClick={confirmLogout}>Logout</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <style>{`
                 .hover-bg-light:hover { background-color: rgba(0,0,0,0.05); }
                 .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
