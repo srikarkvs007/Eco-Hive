@@ -1,5 +1,5 @@
 # 1. Start with a official light Node runtime as the base template
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 2. Set the working directory inside the container
 WORKDIR /app

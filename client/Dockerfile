@@ -1,13 +1,13 @@
 # ==========================================
 # STAGE 1: Compile React Static Bundles
 # ==========================================
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy package descriptors and install build dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copy client source files
 COPY . .
