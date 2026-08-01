@@ -41,7 +41,7 @@ jobs:
         run: |
           cd server
           node --check server.js
-          node --check apiV1.js
+          node --check routes/apiV1.js
 
       - name: Install Frontend Packages
         run: |
