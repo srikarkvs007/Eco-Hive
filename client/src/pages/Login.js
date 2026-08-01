@@ -73,7 +73,7 @@ function Login()
 
             {/* Logo Section */}
             <div className="mb-4 text-center mt-3">
-                <img src="/images/logo-circle.png" alt="Eco-Hive" style={{ width: '150px' }} />
+                <img src={process.env.PUBLIC_URL + "/images/logo-circle.png"} alt="Eco-Hive" style={{ width: '150px' }} />
             </div>
 
             {/* Login Card */}

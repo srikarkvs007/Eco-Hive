@@ -38,7 +38,7 @@ const Footer = () => {
 
                 {/* Breadcrumb */}
                 <div className="d-flex align-items-center mb-4 py-3">
-                    <img src="/images/logo.jpg" alt="Eco-Hive" style={{ height: '16px', filter: 'grayscale(100%) opacity(0.7)' }} className="me-2 d-none d-md-block" />
+                    <img src={process.env.PUBLIC_URL + "/images/logo.jpg"} alt="Eco-Hive" style={{ height: '16px', filter: 'grayscale(100%) opacity(0.7)' }} className="me-2 d-none d-md-block" />
                     <span className="mx-2 fw-medium text-dark">Eco-Hive Store Online</span>
                 </div>
 

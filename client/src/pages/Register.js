@@ -33,7 +33,7 @@ function Register() {
     return (
         <div className="d-flex flex-column align-items-center min-vh-100 pt-5" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
             <div className="mb-4 text-center mt-3">
-                <img src="/images/logo-circle.png" alt="Eco-Hive" style={{ width: '150px' }} />
+                <img src={process.env.PUBLIC_URL + "/images/logo-circle.png"} alt="Eco-Hive" style={{ width: '150px' }} />
             </div>
 
             <div className="glass-panel p-4 rounded-4" style={{ width: '100%', maxWidth: '350px' }}>

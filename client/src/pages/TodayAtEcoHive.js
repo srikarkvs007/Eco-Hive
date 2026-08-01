@@ -153,7 +153,7 @@ const TodayAtEcoHive = () => {
                                     style={{ backgroundColor: 'var(--bg-elevated)', border: 'var(--glass-border)' }}
                                 >
                                     <div style={{ height: '200px', overflow: 'hidden' }}>
-                                        <img src={w.image} alt={w.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={process.env.PUBLIC_URL + w.image} alt={w.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     </div>
                                     <div className="p-4 p-md-5 d-flex flex-column flex-grow-1">
                                         <div className="d-flex justify-content-between align-items-center mb-3">

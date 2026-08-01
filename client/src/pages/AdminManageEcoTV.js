@@ -251,7 +251,7 @@ const AdminManageEcoTV = () => {
                                                                 alt={video.title} 
                                                                 className="rounded border shadow-sm"
                                                                 style={{ width: '60px', height: '40px', objectFit: 'cover' }}
-                                                                onError={(e) => { e.target.src = '/images/logo-circle.png' }}
+                                                                onError={(e) => { e.target.src = process.env.PUBLIC_URL + '/images/logo-circle.png' }}
                                                             />
                                                             <div>
                                                                 <span className="fw-bold d-block text-truncate" style={{ maxWidth: '200px' }}>{video.title}</span>

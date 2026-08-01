@@ -370,7 +370,7 @@ function Navbar({ showSearch = true, onStoreClick, onLogoClick, isHeroPage = fal
                             style={{ borderRadius: '12px' }}
                         >
                             <img 
-                                src="/images/logo.jpg" 
+                                src={process.env.PUBLIC_URL + "/images/logo.jpg"} 
                                 alt="Eco-Hive Logo" 
                                 className="logo-img"
                                 style={{ objectFit: 'contain' }} 

@@ -352,7 +352,7 @@ const PaymentGateway = () => {
                         <div className='navbar-brand fw-bold fs-4 text-dark d-flex align-items-center' style={{ cursor: 'pointer' }} onClick={handleSecureExit}>
                             <div className="d-flex align-items-center justify-content-center bg-white shadow-sm" style={{ height: '44px', width: '44px', borderRadius: '12px' }}>
                                 <img 
-                                    src="/images/logo.jpg" 
+                                    src={process.env.PUBLIC_URL + "/images/logo.jpg"} 
                                     alt="Eco-Hive Logo" 
                                     style={{ height: '32px', width: '32px', objectFit: 'contain', mixBlendMode: 'multiply' }} 
                                 />

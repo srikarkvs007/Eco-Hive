@@ -212,7 +212,7 @@ const AdminManagePodcasts = () => {
                                                                 alt={ep.title} 
                                                                 className="rounded border shadow-sm"
                                                                 style={{ width: '48px', height: '48px', objectFit: 'cover' }}
-                                                                onError={(e) => { e.target.src = '/images/logo-circle.png' }}
+                                                                onError={(e) => { e.target.src = process.env.PUBLIC_URL + '/images/logo-circle.png' }}
                                                             />
                                                             <div>
                                                                 <span className="fw-bold d-block text-truncate" style={{ maxWidth: '240px' }}>{ep.title}</span>

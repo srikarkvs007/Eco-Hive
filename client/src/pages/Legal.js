@@ -6,7 +6,7 @@ function Legal() {
         <div className="d-flex flex-column align-items-center min-vh-100 pt-5" style={{ backgroundColor: 'var(--bg-color)' }}>
             <div className="mb-4 text-center">
                 <Link to="/">
-                    <img src="/images/logo-circle.png" alt="Eco-Hive" style={{ width: '150px' }} />
+                    <img src={process.env.PUBLIC_URL + "/images/logo-circle.png"} alt="Eco-Hive" style={{ width: '150px' }} />
                 </Link>
             </div>
             <div className="container py-4" style={{ maxWidth: '800px' }}>

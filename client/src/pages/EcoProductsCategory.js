@@ -47,7 +47,7 @@ const EcoProductsCategory = () => {
             <div className="w-100 d-flex align-items-center justify-content-center" style={{
                 height: '300px',
                 backgroundColor: '#1d1d1f',
-                backgroundImage: 'url(/images/banner1_hd.png)', // fallback subtle background
+                backgroundImage: `url(${process.env.PUBLIC_URL}/images/banner1_hd.png)`, // fallback subtle background
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundBlendMode: 'overlay',

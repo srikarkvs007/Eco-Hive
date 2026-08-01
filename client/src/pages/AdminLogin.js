@@ -67,7 +67,7 @@ function AdminLogin()
 
             {/* Logo Section */}
             <div className="mb-4 text-center mt-3">
-                <img src="/images/logo-circle.png" alt="Eco-Hive" style={{ width: '150px' }} />
+                <img src={process.env.PUBLIC_URL + "/images/logo-circle.png"} alt="Eco-Hive" style={{ width: '150px' }} />
                 <h6 className="text-muted text-uppercase tracking-wider mt-3" style={{ letterSpacing: '2px', fontSize: '12px' }}>Admin Portal</h6>
             </div>
 

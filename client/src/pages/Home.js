@@ -163,7 +163,7 @@ const Home = () => {
                         }
                     `}</style>
                     <img 
-                        src="/images/logo.jpg" 
+                        src={process.env.PUBLIC_URL + "/images/logo.jpg"} 
                         alt="Eco-Hive" 
                         style={{ 
                             height: '100px', 
@@ -202,9 +202,9 @@ const Home = () => {
                     >
                         <div className="hero-image-container position-absolute top-0 start-0 w-100 h-100" style={{ zIndex: 0 }}>
                             <picture>
-                                <source srcSet="/images/eco_product_4k.webp" type="image/webp" />
+                                <source srcSet={process.env.PUBLIC_URL + "/images/eco_product_4k.webp"} type="image/webp" />
                                 <img 
-                                    src="/images/eco_product_4k.jpg" 
+                                    src={process.env.PUBLIC_URL + "/images/eco_product_4k.jpg"} 
                                     alt="Eco-Hive Banner" 
                                     fetchpriority="high" 
                                     decoding="sync" 
@@ -298,7 +298,7 @@ const Home = () => {
                                 backgroundColor: '#000'
                             }}>
                                 <img 
-                                    src="/images/banner3.png" 
+                                    src={process.env.PUBLIC_URL + "/images/banner3.png"} 
                                     alt="Small Steps" 
                                     loading="lazy" 
                                     decoding="async" 
@@ -320,7 +320,7 @@ const Home = () => {
                                 backgroundColor: '#000'
                             }}>
                                 <img 
-                                    src="/images/banner4.png" 
+                                    src={process.env.PUBLIC_URL + "/images/banner4.png"} 
                                     alt="Better for Earth" 
                                     loading="lazy" 
                                     decoding="async" 

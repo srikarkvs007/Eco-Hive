@@ -63,7 +63,7 @@ const AdminLayout = ({ children }) => {
                 {/* Logo Area */}
                 <div className="d-flex align-items-center px-4" style={{ height: '64px', borderBottom: 'var(--glass-border)' }}>
                     <div className="d-flex align-items-center justify-content-center shadow-sm" style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: '#fff' }}>
-                        <img src="/images/logo.jpg" alt="Eco-Hive Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
+                        <img src={process.env.PUBLIC_URL + "/images/logo.jpg"} alt="Eco-Hive Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
                     </div>
                     <span className="ms-3 fw-bolder fs-5" style={{ letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>EcoHive</span>
                     <span className="badge ms-2 shadow-sm border" style={{ backgroundColor: 'var(--accent-color, #1D9E75)', color: '#fff', fontSize: '10px', borderColor: 'rgba(255,255,255,0.1)' }}>Admin</span>
