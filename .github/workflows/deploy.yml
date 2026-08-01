@@ -6,9 +6,11 @@ on:
     branches:
       - main
       - develop
+      - intern
   pull_request:
     branches:
       - main
+      - intern
 
 jobs:
   # ==========================================
@@ -39,7 +41,7 @@ jobs:
         run: |
           cd server
           node --check server.js
-          node --check routes/apiV1.js
+          node --check apiV1.js
 
       - name: Install Frontend Packages
         run: |
